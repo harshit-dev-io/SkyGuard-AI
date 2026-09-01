@@ -1,0 +1,2 @@
+# SkyGuard-AI 
+### Real-time anomaly detection and data validation system for Automatic Weather Station (AWS) networks. SkyGuard AI prevents data contamination by integrating  edge level validation and central level spatial cross-validation and sensor health monitoring.
