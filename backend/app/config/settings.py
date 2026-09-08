@@ -10,6 +10,12 @@ class Settings(BaseSettings):
     MQTT_KEEPALIVE: int = 60
     MQTT_TOPICS: List[str] = Field(default_factory=lambda: ["wis2/#"])
 
+    # Database Configuration
+    DATABASE_URL: str = "sqlite:///./wis2_backend.db"
+
+    # Logging Configuration
+    LOG_LEVEL: str = "INFO"
+
     # Spatial Neighbor Search Thresholds
     SPATIAL_RADIUS_DEFAULT_KM: float = 30.0
     SPATIAL_RADIUS_MAX_KM: float = 75.0
