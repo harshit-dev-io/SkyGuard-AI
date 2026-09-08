@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Dict, Any, Optional
 
@@ -32,16 +33,21 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         ws_manager=ws_manager,
     )
 
-    task = asyncio.create_task(mqtt_subscriber.start())
+    start_res = mqtt_subscriber.start()
+    if inspect.isawaitable(start_res):
+        task = asyncio.create_task(start_res)
+    else:
+        task = None
 
     yield
 
     mqtt_subscriber.stop()
-    task.cancel()
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    if task is not None:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
 
     mqtt_subscriber = None
 
