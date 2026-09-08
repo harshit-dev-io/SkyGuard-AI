@@ -1,11 +1,20 @@
 import pytest
 from datetime import datetime, timedelta, timezone
-from backend.app.pipelines.spatial_idw import (
-    haversine_distance,
-    filter_neighbors,
-    inverse_distance_weighting,
-    predict_spatial_value,
-)
+
+try:
+    from app.pipelines.spatial_idw import (
+        haversine_distance,
+        filter_neighbors,
+        inverse_distance_weighting,
+        predict_spatial_value,
+    )
+except ModuleNotFoundError:
+    from backend.app.pipelines.spatial_idw import (
+        haversine_distance,
+        filter_neighbors,
+        inverse_distance_weighting,
+        predict_spatial_value,
+    )
 
 
 def test_haversine_distance_zero():
