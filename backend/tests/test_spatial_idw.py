@@ -1,20 +1,19 @@
-import pytest
+import sys
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
 
-try:
-    from app.pipelines.spatial_idw import (
-        haversine_distance,
-        filter_neighbors,
-        inverse_distance_weighting,
-        predict_spatial_value,
-    )
-except ModuleNotFoundError:
-    from backend.app.pipelines.spatial_idw import (
-        haversine_distance,
-        filter_neighbors,
-        inverse_distance_weighting,
-        predict_spatial_value,
-    )
+# Ensure project root & backend package are in sys.path
+root_dir = Path(__file__).resolve().parent.parent.parent
+if str(root_dir) not in sys.path:
+    sys.path.insert(0, str(root_dir))
+
+import pytest
+from backend.app.pipelines.spatial_idw import (
+    haversine_distance,
+    filter_neighbors,
+    inverse_distance_weighting,
+    predict_spatial_value,
+)
 
 
 def test_haversine_distance_zero():
