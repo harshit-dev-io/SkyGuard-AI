@@ -1,9 +1,17 @@
 import json
+import os
+import sys
 import unittest
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
-from edge_simulator.mqtt_client import MQTTPublisher
+# Ensure the parent directory is in sys.path for relative package imports when running pytest from root
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+try:
+    from edge_simulator.mqtt_client import MQTTPublisher
+except ModuleNotFoundError:
+    from mqtt_client import MQTTPublisher
 
 
 class TestMQTTPublisher(unittest.TestCase):
@@ -73,7 +81,7 @@ class TestMQTTPublisher(unittest.TestCase):
         self.assertEqual(payload_dict["type"], "Feature")
         self.assertEqual(payload_dict["geometry"]["type"], "Point")
         self.assertEqual(payload_dict["geometry"]["coordinates"], coords)
-        
+
         props = payload_dict["properties"]
         self.assertEqual(props["station_id"], "DELHI_AWS_04")
         self.assertEqual(props["datetime"], "2026-09-08T09:00:00Z")
