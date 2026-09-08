@@ -11,7 +11,7 @@ class TestMQTTPublisher(unittest.TestCase):
         self.mock_mqtt_client = MagicMock()
         self.publisher = MQTTPublisher(client=self.mock_mqtt_client)
 
-    def test_connect_and_disconnect((self) -> None:
+    def test_connect_and_disconnect(self) -> None:
         self.publisher.connect(host="mqtt.example.com", port=1883, keepalive=30)
         self.mock_mqtt_client.connect.assert_called_once_with("mqtt.example.com", 1883, 30)
         self.mock_mqtt_client.loop_start.assert_called_once()
