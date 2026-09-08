@@ -47,7 +47,7 @@ def calculate_health_index_and_rul(
     current_cusum: float,
     max_cusum_threshold: float = 50.0,
     max_allowed_drift_per_day: float = 0.5,
-    max_drift_tolerance: float = 5.0,
+    max_drift_tolerance: float = 25.0,
 ) -> Tuple[float, float]:
     """Computes the WMO Health Index (0 - 100 scale) and Remaining Useful Life (RUL) in days.
 
