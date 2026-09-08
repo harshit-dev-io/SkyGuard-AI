@@ -14,6 +14,12 @@ VALID_RANGES = {
     "rh": (0.0, 100.0),  # Relative Humidity in %
 }
 
+PARAM_ALIASES = {
+    "t": ("t", "air_temperature", "temperature", "temp"),
+    "p": ("p", "barometric_pressure", "pressure"),
+    "rh": ("rh", "relative_humidity", "humidity"),
+}
+
 
 class PayloadValidationError(ValueError):
     """Raised when WIS 2.0 GeoJSON payload fails structure or domain validation."""
@@ -34,6 +40,18 @@ class ParsedTelemetry:
     qc_bitmask: int
     qc_flags: Dict[str, bool]
     properties: Dict[str, Any]
+
+    @property
+    def barometric_pressure(self) -> float:
+        return self.p
+
+    @property
+    def air_temperature(self) -> float:
+        return self.t
+
+    @property
+    def relative_humidity(self) -> float:
+        return self.rh
 
 
 def decode_qc_bitmask(bitmask: int) -> Dict[str, bool]:
@@ -100,23 +118,31 @@ def parse_wis2_payload(payload: Dict[str, Any]) -> ParsedTelemetry:
     except Exception as exc:
         raise PayloadValidationError(f"Invalid timestamp format '{raw_datetime}': {exc}") from exc
 
-    for param in ("t", "p", "rh"):
-        if param not in properties or properties[param] is None:
+    extracted_params = {}
+    for param, aliases in PARAM_ALIASES.items():
+        val = None
+        for alias in aliases:
+            if alias in properties and properties[alias] is not None:
+                val = properties[alias]
+                break
+        if val is None:
             raise PayloadValidationError(f"Missing required sensor reading '{param}'")
+
         try:
-            val = float(properties[param])
+            numeric_val = float(val)
         except (ValueError, TypeError) as exc:
             raise PayloadValidationError(f"Sensor reading '{param}' is not numeric") from exc
 
         min_val, max_val = VALID_RANGES[param]
-        if not (min_val <= val <= max_val):
+        if not (min_val <= numeric_val <= max_val):
             raise PayloadValidationError(
-                f"Sensor reading '{param}' = {val} out of valid range [{min_val}, {max_val}]"
+                f"Sensor reading '{param}' = {numeric_val} out of valid range [{min_val}, {max_val}]"
             )
+        extracted_params[param] = numeric_val
 
-    t = float(properties["t"])
-    p = float(properties["p"])
-    rh = float(properties["rh"])
+    t = extracted_params["t"]
+    p = extracted_params["p"]
+    rh = extracted_params["rh"]
 
     qc_bitmask = int(properties.get("qc_bitmask", 0))
     qc_flags = decode_qc_bitmask(qc_bitmask)
