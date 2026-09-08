@@ -1,21 +1,27 @@
 import json
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-import paho.mqtt.client as mqtt
+
+try:
+    import paho.mqtt.client as mqtt
+except ImportError:
+    mqtt = None
 
 
 class MQTTPublisher:
     """MQTT Publisher for Edge Simulator matching WIS 2.0 GeoJSON specifications."""
 
-    def __init__(self, client: Optional[mqtt.Client] = None) -> None:
+    def __init__(self, client: Optional[Any] = None) -> None:
         if client is not None:
             self.client = client
-        else:
+        elif mqtt is not None:
             # Paho MQTT v2.0+ API compatibility
             if hasattr(mqtt, "CallbackAPIVersion"):
                 self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
             else:
                 self.client = mqtt.Client()
+        else:
+            raise ImportError("paho-mqtt is required to initialize MQTTPublisher without a custom client.")
 
     def connect(self, host: str = "localhost", port: int = 1883, keepalive: int = 60) -> None:
         """Connects to the specified MQTT broker."""
