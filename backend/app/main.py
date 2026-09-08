@@ -1,13 +1,14 @@
+import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Dict, Any, Optional
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
-from app.api.ws_manager import WebSocketManager
-from app.config.logging import setup_logging
-from app.config.settings import Settings
-from app.ingestion.mqtt_subscriber import AsyncMQTTSubscriber
-from app.pipelines.orchestrator import CentralPipelineOrchestrator
+from backend.app.api.ws_manager import WebSocketManager
+from backend.app.config.logging import setup_logging
+from backend.app.config.settings import Settings
+from backend.app.ingestion.mqtt_subscriber import AsyncMQTTSubscriber
+from backend.app.pipelines.orchestrator import CentralPipelineOrchestrator
 
 # Global application dependencies
 ws_manager = WebSocketManager()
@@ -28,9 +29,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         broker_host=broker_host,
         broker_port=broker_port,
         orchestrator=orchestrator,
+        ws_manager=ws_manager,
     )
 
+    task = asyncio.create_task(mqtt_subscriber.start())
+
     yield
+
+    mqtt_subscriber.stop()
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
 
     mqtt_subscriber = None
 

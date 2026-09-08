@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 import aiomqtt
 
@@ -22,6 +22,7 @@ class AsyncMQTTSubscriber:
         broker_port: int = 1883,
         topic: str = DEFAULT_TOPIC,
         orchestrator: Optional[CentralPipelineOrchestrator] = None,
+        ws_manager: Optional[Any] = None,
         reconnect_interval: float = 1.0,
         max_reconnect_attempts: Optional[int] = None,
     ) -> None:
@@ -29,16 +30,47 @@ class AsyncMQTTSubscriber:
         self.broker_port = broker_port
         self.topic = topic
         self.orchestrator = orchestrator or CentralPipelineOrchestrator()
+        self.ws_manager = ws_manager
         self.reconnect_interval = reconnect_interval
         self.max_reconnect_attempts = max_reconnect_attempts
         self._is_running = False
 
     async def handle_message(self, payload_bytes: bytes) -> None:
-        """Parses payload bytes and passes telemetry to the orchestrator."""
+        """Parses payload bytes, processes telemetry, and broadcasts via ws_manager."""
         try:
             payload_dict = json.loads(payload_bytes.decode("utf-8"))
             telemetry = parse_wis2_payload(payload_dict)
-            self.orchestrator.process_telemetry(telemetry)
+            result = self.orchestrator.process_telemetry(telemetry)
+
+            if self.ws_manager is not None:
+                classification_str = str(
+                    result.classification.value
+                    if hasattr(result.classification, "value")
+                    else result.classification
+                )
+                result_dict = {
+                    "station_id": result.station_id,
+                    "timestamp": result.timestamp.isoformat(),
+                    "raw_pressure": result.raw_pressure,
+                    "demodulated_pressure": result.demodulated_pressure,
+                    "predicted_spatial_pressure": result.predicted_spatial_pressure,
+                    "classification": classification_str,
+                    "cusum": result.cusum,
+                    "health_index": result.health_index,
+                    "rul_days": result.rul_days,
+                    "imputed_pressure": result.imputed_pressure,
+                    "qc_state": result.qc_state,
+                }
+                await self.ws_manager.broadcast_telemetry(result_dict)
+                await self.ws_manager.broadcast_health_index(
+                    {
+                        "station_id": result.station_id,
+                        "health_index": result.health_index,
+                        "rul_days": result.rul_days,
+                    }
+                )
+                if classification_str == "SENSOR_FAULT":
+                    await self.ws_manager.broadcast_alert(result_dict)
         except (json.JSONDecodeError, PayloadValidationError) as err:
             logger.error("Validation or JSON error processing MQTT message: %s", err)
         except Exception as err:
