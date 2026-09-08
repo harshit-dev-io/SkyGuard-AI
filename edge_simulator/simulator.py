@@ -1,8 +1,17 @@
+import argparse
 import math
+import signal
 import statistics
+import sys
+import time
 from datetime import datetime, timezone
 from enum import Enum, auto
 from typing import Any, Dict, List, Optional, Tuple
+
+try:
+    from edge_simulator.mqtt_client import MQTTPublisher
+except ModuleNotFoundError:
+    from mqtt_client import MQTTPublisher
 
 
 class AnomalyMode(Enum):
@@ -25,8 +34,6 @@ def calculate_sonntag_e_s(temp_c: float) -> float:
     T_k: absolute temperature in Kelvin.
     """
     temp_k = temp_c + 273.15
-    # Sonntag (1990) equation for e_s over water in Pa:
-    # ln(e_s) = -6096.9385/T_k + 21.2409642 - 2.711193e-2*T_k + 1.673952e-5*T_k^2 + 2.433502*ln(T_k)
     ln_es_pa = (
         -6096.9385 / temp_k
         + 21.2409642
@@ -47,9 +54,6 @@ def calculate_dew_point(temp_c: float, rh: float) -> float:
     e_s = calculate_sonntag_e_s(temp_c)
     e = (rh / 100.0) * e_s
     
-    # Invert Sonntag or use numerical approximation for dew point based on vapor pressure e (in hPa)
-    # Using standard Magnus or logarithmic inversion for high precision dew point matching Sonntag e_s
-    # Inversion solver for T_dew:
     low, high = -100.0, 100.0
     for _ in range(30):
         mid = (low + high) / 2.0
@@ -90,7 +94,6 @@ class RingBuffer:
         return [obs["rh"] for obs in self.buffer]
 
     def get_cnn_tensor(self) -> List[List[float]]:
-        # Latest 10 observations formatted as [10 x 3] -> [[t, p, rh], ...]
         recent = self.buffer[-10:]
         return [[obs["t"], obs["p"], obs["rh"]] for obs in recent]
 
@@ -99,13 +102,14 @@ class RingBuffer:
 
 
 class EdgeSimulator:
-    def __init__(self, config: Optional[StationConfig] = None) -> None:
+    def __init__(self, config: Optional[StationConfig] = None, publisher: Optional[MQTTPublisher] = None) -> None:
         self.config = config or StationConfig()
         self.ring_buffer = RingBuffer(capacity=12)
         self.step_counter = 0
+        self.publisher = publisher or MQTTPublisher()
+        self.running = False
 
     def generate_observation(self, mode: AnomalyMode = AnomalyMode.NORMAL) -> Dict[str, float]:
-        # Base realistic diurnal ambient conditions
         t_base = 25.0 + 5.0 * math.sin(self.step_counter * 0.1)
         p_base = 1013.25 - 2.0 * math.cos(self.step_counter * 0.05)
         rh_base = 60.0 + 10.0 * math.cos(self.step_counter * 0.1)
@@ -113,16 +117,12 @@ class EdgeSimulator:
         self.step_counter += 1
 
         if mode == AnomalyMode.FROZEN_ADC:
-            # RH pinned >= 98% with zero/minimal variance
             return {"t": t_base, "p": p_base, "rh": 99.0}
         elif mode == AnomalyMode.SUPER_SATURATION:
-            # RH > 103% (e > 1.03 * e_s)
             return {"t": t_base, "p": p_base, "rh": 105.0}
         elif mode == AnomalyMode.THERMO_VIOLATION:
-            # Induce impossible dew point > T_ambient by setting unphysical RH (> 100%) or offset
             return {"t": t_base, "p": p_base, "rh": 110.0}
         elif mode == AnomalyMode.MICROBURST_SIM:
-            # Rapid temperature drop and pressure spike
             return {"t": t_base - 8.0, "p": p_base + 12.0, "rh": 95.0}
         else:
             return {"t": round(t_base, 2), "p": round(p_base, 2), "rh": round(rh_base, 2)}
@@ -135,22 +135,18 @@ class EdgeSimulator:
         }
         bitmask = 0
 
-        # Sonntag saturation vapor pressure
         e_s = calculate_sonntag_e_s(t)
         e = (rh / 100.0) * e_s
 
-        # 1. Supersaturation threshold check (e > 1.03 * e_s(T))
         if e > 1.03 * e_s:
             qc_flags["physical_limit_exceeded"] = True
             bitmask |= BITMASK_PHYSICAL_LIMIT
 
-        # 2. Dew Point Invariant check (T_dew > T_ambient)
         t_dew = calculate_dew_point(t, rh)
-        if t_dew > t + 1e-4:  # Small floating epsilon
+        if t_dew > t + 1e-4:
             qc_flags["thermo_violation"] = True
             bitmask |= BITMASK_THERMO_INVARIANT
 
-        # 3. Micro-turbulence variance gate
         rh_window = self.ring_buffer.get_rh_values()
         if len(rh_window) >= 12:
             all_above_98 = all(val >= 98.0 for val in rh_window)
@@ -169,7 +165,6 @@ class EdgeSimulator:
 
         qc_flags, qc_bitmask = self.evaluate_qc(obs["t"], obs["p"], obs["rh"])
 
-        # TinyML mock Z-scores
         z_scores = {
             "z_t": 0.0,
             "z_p": 0.0,
@@ -204,3 +199,70 @@ class EdgeSimulator:
         }
 
         return geojson_payload
+
+    def run_loop(
+        self,
+        broker: str = "localhost",
+        port: int = 1883,
+        interval: float = 1.0,
+        mode: AnomalyMode = AnomalyMode.NORMAL,
+    ) -> None:
+        """Connects to MQTT broker and continuously samples/publishes observations."""
+        self.publisher.connect(host=broker, port=port)
+        self.running = True
+
+        def handle_signal(sig, frame):
+            print("\nShutting down Edge Simulator...")
+            self.running = False
+
+        signal.signal(signal.SIGINT, handle_signal)
+        signal.signal(signal.SIGTERM, handle_signal)
+
+        print(f"Started Edge Simulator for station {self.config.station_id}. Publishing to {broker}:{port}...")
+
+        try:
+            while self.running:
+                payload = self.process_step(mode=mode)
+                self.publisher.publish_payload(self.config.station_id, payload)
+                time.sleep(interval)
+        finally:
+            self.publisher.disconnect()
+            print("Edge Simulator disconnected.")
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Edge Simulator for AWS WIS 2.0 MQTT telemetry.")
+    parser.add_argument("--broker", type=str, default="localhost", help="MQTT Broker host (default: localhost)")
+    parser.add_argument("--port", type=int, default=1883, help="MQTT Broker port (default: 1883)")
+    parser.add_argument("--station-id", type=str, default="DELHI_AWS_04", help="Station ID (default: DELHI_AWS_04)")
+    parser.add_argument("--interval", type=float, default=1.0, help="Sampling interval in seconds (default: 1.0)")
+    parser.add_argument(
+        "--anomaly-mode",
+        type=str,
+        default="NORMAL",
+        choices=[mode.name for mode in AnomalyMode],
+        help="Anomaly injection mode (default: NORMAL)",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    mode = AnomalyMode[args.anomaly_mode]
+    urn_id = f"urn:wmo:md:in-imd:station_{args.station_id.lower()}:data"
+    
+    config = StationConfig(
+        station_id=args.station_id,
+        urn_id=urn_id,
+    )
+    simulator = EdgeSimulator(config=config)
+    simulator.run_loop(
+        broker=args.broker,
+        port=args.port,
+        interval=args.interval,
+        mode=mode,
+    )
+
+
+if __name__ == "__main__":
+    main()
