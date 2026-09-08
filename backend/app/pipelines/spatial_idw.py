@@ -42,9 +42,12 @@ def filter_neighbors(
             continue
 
         # Filter by staleness (> 20 mins)
-        station_time = station.get("datetime")
+        station_time = station.get("datetime") or station.get("timestamp")
         if isinstance(station_time, str):
             station_time = datetime.fromisoformat(station_time)
+
+        if not isinstance(station_time, datetime):
+            continue
 
         if station_time.tzinfo is None and target_time.tzinfo is not None:
             station_time = station_time.replace(tzinfo=timezone.utc)
