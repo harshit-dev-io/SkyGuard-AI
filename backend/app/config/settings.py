@@ -1,72 +1,35 @@
-import json
-from typing import List, Union, Any
-from pydantic import Field
-
-try:
-    from pydantic_settings import BaseSettings
-    try:
-        from pydantic import field_validator
-        HAS_V2_VALIDATOR = True
-    except ImportError:
-        from pydantic import validator  # type: ignore
-        HAS_V2_VALIDATOR = False
-except ImportError:
-    try:
-        from pydantic import BaseSettings, validator  # type: ignore
-        HAS_V2_VALIDATOR = False
-    except ImportError:
-        from pydantic.v1 import BaseSettings, validator  # type: ignore
-        HAS_V2_VALIDATOR = False
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    # MQTT Configuration
-    MQTT_BROKER_HOST: str = "localhost"
-    MQTT_BROKER_PORT: int = 1883
-    MQTT_KEEPALIVE: int = 60
-    MQTT_TOPICS: List[str] = ["wis2/#"]
+    API_V1_PREFIX: str = "/api/v1"
+    PROJECT_NAME: str = "SkyGuard AI Core"
 
-    # Database Configuration
-    DATABASE_URL: str = "sqlite:///./wis2_backend.db"
+    # Security
+    SECRET_KEY: str = "CHANGE_THIS_TO_A_SECURE_SECRET_MIN_32_CHARS"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    # Logging Configuration
-    LOG_LEVEL: str = "INFO"
+    # PBKDF2 Password Hashing
+    PBKDF2_ITERATIONS: int = 600_000
+    PBKDF2_SALT_SIZE: int = 16
 
-    # Spatial Neighbor Search Thresholds
-    SPATIAL_RADIUS_DEFAULT_KM: float = 30.0
-    SPATIAL_RADIUS_MAX_KM: float = 75.0
-    MAX_STALENESS_MINUTES: float = 20.0
-    IDW_POWER_PARAMETER: float = 2.0
+    # Postgres / TimescaleDB
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_DB: str = "skyguard"
 
-    if HAS_V2_VALIDATOR:
-        @field_validator("MQTT_TOPICS", mode="before")
-        @classmethod
-        def parse_mqtt_topics(cls, v: Any) -> Any:
-            if isinstance(v, str):
-                v = v.strip()
-                if v.startswith("[") and v.endswith("]"):
-                    try:
-                        return json.loads(v)
-                    except json.JSONDecodeError:
-                        pass
-                return [item.strip() for item in v.split(",") if item.strip()]
-            return v
-    else:
-        @validator("MQTT_TOPICS", pre=True, always=True)
-        def parse_mqtt_topics(cls, v: Any) -> Any:
-            if isinstance(v, str):
-                v = v.strip()
-                if v.startswith("[") and v.endswith("]"):
-                    try:
-                        return json.loads(v)
-                    except json.JSONDecodeError:
-                        pass
-                return [item.strip() for item in v.split(",") if item.strip()]
-            return v
+    @property
+    def async_database_url(self) -> str:
+        return (
+            f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        )
 
-    class Config:
-        env_prefix = "WIS2_BACKEND_"
-        case_sensitive = False
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
 
 settings = Settings()
