@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --border: 220 13% 91%;
+  }
+
+  .dark {
+    --border: 215 28% 17%;
+  }
+
+  * {
+    /* Fallback to standard Tailwind border if border-border is used */
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    @apply bg-paper-light text-ink-light dark:bg-paper-dark dark:text-ink-dark transition-colors duration-200;
+  }
+}
