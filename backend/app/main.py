@@ -4,12 +4,16 @@ from app.auth.routes import router as auth_router
 from app.config.database import Base, engine
 from app.config.logging import logger
 from app.config.settings import settings
+from fastapi.middleware import cors
+from app.edge_simulator.router import router as edge_router
+from sqlalchemy import text
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Initializing database connection...")
     async with engine.begin() as conn:
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
         await conn.run_sync(Base.metadata.create_all)
     logger.info("Database schema synchronized.")
     yield
@@ -23,8 +27,17 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(
+    cors.CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Register Sub-Routers
 app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
+app.include_router(edge_router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/health", tags=["Health"])
