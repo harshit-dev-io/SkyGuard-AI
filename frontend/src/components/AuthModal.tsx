@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Lock, Mail, User, Shield, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
+
 interface AuthModalProps {
   isOpen: boolean;
   initialMode: 'login' | 'signup';
@@ -30,8 +32,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, initialMode, onClo
     setLoading(true);
 
     const endpoint = mode === 'login'
-      ? 'http://127.0.0.1:8000/api/v1/auth/login'
-      : 'http://127.0.0.1:8000/api/v1/auth/signup';
+      ? `${API_BASE_URL}/auth/login`
+      : `${API_BASE_URL}/auth/signup`;
 
     const payload = mode === 'login'
       ? { email, password }

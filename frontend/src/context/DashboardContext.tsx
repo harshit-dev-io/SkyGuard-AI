@@ -3,6 +3,8 @@ import type { StationGeoNode, AnomalyRecord, FleetRegistryItem, StationStatus } 
 
 export type DashboardTab = 'fleet' | 'station' | 'explainability' | 'alerts' | 'manage_aws';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
+
 interface DashboardContextType {
   activeTab: DashboardTab;
   setActiveTab: (tab: DashboardTab) => void;
@@ -54,7 +56,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch('http://127.0.0.1:8000/api/v1/edge/stations?limit=500', {
+      const response = await fetch(`${API_BASE_URL}/edge/stations?limit=500`, {
         headers,
       });
 
@@ -125,7 +127,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setIsRebuildingTopology(true);
     try {
       const token = localStorage.getItem('sg_access_token');
-      await fetch('http://127.0.0.1:8000/api/v1/edge/simulator/start', {
+      await fetch(`${API_BASE_URL}/edge/simulator/start`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

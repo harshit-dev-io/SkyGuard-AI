@@ -10,6 +10,8 @@ import {
   X,
 } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
+
 export const ManageAWS: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showRegisterForm, setShowRegisterForm] = useState(false);
@@ -80,7 +82,7 @@ export const ManageAWS: React.FC = () => {
     };
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/v1/edge/stations', {
+      const response = await fetch(`${API_BASE_URL}/edge/stations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
