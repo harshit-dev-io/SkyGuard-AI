@@ -10,14 +10,14 @@ export const FleetRegistryTable: React.FC = () => {
       <div className="p-6 border-b border-[#232936] flex items-center justify-between">
         <div>
           <h2 className="font-serif text-lg font-bold text-[#F8FAFC]">
-            AWS Fleet Lifecycle &amp; Metadata Matrix
+            AWS Fleet Lifecycle &amp; Metadata Matrix[cite: 1]
           </h2>
           <p className="text-[11px] font-mono text-[#94A3B8]">
-            WIGOS station mapping, duty-cycle states, and mTLS security bounds
+            WIGOS station mapping, duty-cycle states, and mTLS security bounds[cite: 1]
           </p>
         </div>
         <span className="text-[10px] font-mono px-2.5 py-1 rounded bg-[#0D0F12] border border-[#232936] text-[#94A3B8]">
-          REGISTRY: ENFORCED
+          REGISTRY: ENFORCED[cite: 1]
         </span>
       </div>
 
@@ -26,11 +26,11 @@ export const FleetRegistryTable: React.FC = () => {
           <thead>
             <tr className="border-b border-[#232936] bg-[#0D0F12] text-[10px] font-mono uppercase tracking-widest text-[#94A3B8]">
               <th className="py-3 px-6">Station ID</th>
-              <th className="py-3 px-4">WIGOS Identifier (WSI)</th>
-              <th className="py-3 px-4">Terrain / Region</th>
-              <th className="py-3 px-4">Power &amp; Backhaul</th>
-              <th className="py-3 px-4">Edge Runtime</th>
-              <th className="py-3 px-6 text-right">mTLS Identity</th>
+              <th className="py-3 px-4">WIGOS Identifier (WSI)[cite: 1]</th>
+              <th className="py-3 px-4">Terrain / Region[cite: 1]</th>
+              <th className="py-3 px-4">Power &amp; Backhaul[cite: 1]</th>
+              <th className="py-3 px-4">Edge Runtime[cite: 1]</th>
+              <th className="py-3 px-6 text-right">mTLS Identity[cite: 1]</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#232936] text-xs font-mono">
@@ -46,7 +46,7 @@ export const FleetRegistryTable: React.FC = () => {
                   ) : (
                     <div className="flex items-center gap-1.5 text-amber-400">
                       <ShieldAlert className="w-3.5 h-3.5" />
-                      <span className="font-bold">PENDING REGISTRATION (BLOCKED)</span>
+                      <span className="font-bold">PENDING REGISTRATION (BLOCKED)[cite: 1]</span>
                     </div>
                   )}
                 </td>

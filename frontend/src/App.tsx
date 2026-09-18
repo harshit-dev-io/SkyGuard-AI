@@ -13,11 +13,10 @@ import { AuthModal } from './components/AuthModal';
 
 import { Header } from './components/layout/Header';
 import { OperatorDashboard } from './components/operator/OperatorDashboard';
-import { AdminDashboard } from './components/admin/AdminDashboard';
 import { IndiaSpatialMap } from './components/operator/IndiaSpatialMap';
 import { AnomalyTable } from './components/operator/AnomalyTable';
 import { ExplainabilityDrawer } from './components/shared/ExplainabilityDrawer';
-import { FleetRegistryTable } from './components/admin/FleetRegistryTable';
+import { ManageAWS } from './components/admin/ManageAWS';
 
 const DashboardRouter: React.FC = () => {
   const { user } = useAuth();
@@ -28,10 +27,39 @@ const DashboardRouter: React.FC = () => {
       <AnnouncementBar />
       <Header />
       <main className="max-w-[1520px] mx-auto px-6 py-8">
-        {activeTab === 'fleet' && (
-          user?.role === 'admin' ? <AdminDashboard /> : <OperatorDashboard />
+        {/* Fleet View: Exactly identical for both Admin and Operator */}
+        {activeTab === 'fleet' && <OperatorDashboard />}
+
+        {activeTab === 'station' && (
+          <div className="space-y-6">
+            <h1 className="font-serif text-2xl font-bold text-[#18181B] dark:text-[#F8FAFC]">
+              Geospatial Station Inspector
+            </h1>
+            <IndiaSpatialMap />
+          </div>
         )}
-        {/* other tabs remain unchanged */}
+
+        {activeTab === 'explainability' && (
+          <div className="space-y-6">
+            <h1 className="font-serif text-2xl font-bold text-[#18181B] dark:text-[#F8FAFC]">
+              Evidence &amp; Decision Inspector
+            </h1>
+            <ExplainabilityDrawer />
+            <AnomalyTable />
+          </div>
+        )}
+
+        {activeTab === 'alerts' && (
+          <div className="space-y-6">
+            <h1 className="font-serif text-2xl font-bold text-[#18181B] dark:text-[#F8FAFC]">
+              Active Alerts &amp; Extreme Events
+            </h1>
+            <AnomalyTable />
+          </div>
+        )}
+
+        {/* Exclusive Manage AWS Section for Admin */}
+        {activeTab === 'manage_aws' && user?.role === 'admin' && <ManageAWS />}
       </main>
     </div>
   );
@@ -57,7 +85,6 @@ const RootApp: React.FC = () => {
     );
   }
 
-  // If user is authenticated, redirect directly into the dashboard
   if (user) {
     return (
       <DashboardProvider>
@@ -66,7 +93,6 @@ const RootApp: React.FC = () => {
     );
   }
 
-  // Otherwise, render Public Landing Page
   return (
     <div className="min-h-screen bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark font-sans transition-colors duration-200">
       <AnnouncementBar />
