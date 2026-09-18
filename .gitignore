@@ -1,0 +1,10 @@
+.env
+*.pyc
+__pycache__/
+.aider*
+node_modules/
+
+node_modules/
+**/node_modules/
+docs/
+settings.json
