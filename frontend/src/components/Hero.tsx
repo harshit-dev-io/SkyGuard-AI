@@ -27,13 +27,13 @@ export const Hero: React.FC<HeroProps> = ({ onRegisterClick }) => {
         <div className="mt-8 flex items-center justify-center gap-3">
           <a
             href="#flow"
-            className="px-6 py-2.5 text-xs font-mono uppercase tracking-widest bg-ink-light dark:bg-ink-dark text-surface-light dark:text-surface-dark rounded hover:opacity-90 transition-all"
+            className="px-6 py-2.5 text-xs font-mono font-bold uppercase tracking-widest bg-[#141414] dark:bg-white text-white dark:text-[#141414] hover:bg-[#262626] dark:hover:bg-[#e0e0e0] rounded transition-all shadow-sm cursor-pointer"
           >
             Explore System
           </a>
           <button
             onClick={onRegisterClick}
-            className="px-6 py-2.5 text-xs font-mono uppercase tracking-widest border border-borderMuted-light dark:border-borderMuted-dark text-ink-light dark:text-ink-dark hover:bg-neutral-100 dark:hover:bg-neutral-800/80 rounded transition-all"
+            className="px-6 py-2.5 text-xs font-mono font-semibold uppercase tracking-widest border border-borderMuted-light dark:border-borderMuted-dark text-ink-light dark:text-ink-dark hover:bg-neutral-100 dark:hover:bg-neutral-800/80 rounded transition-all cursor-pointer"
           >
             Register Station
           </button>

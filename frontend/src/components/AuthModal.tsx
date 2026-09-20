@@ -93,20 +93,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, initialMode, onClo
             <div className="flex border-b border-borderMuted-light dark:border-borderMuted-dark pb-3 mb-6">
               <button
                 onClick={() => { setMode('login'); setError(null); }}
-                className={`text-xs font-mono uppercase tracking-widest pb-2 mr-6 border-b-2 transition-all ${
+                className={`text-xs font-mono uppercase tracking-widest pb-2 mr-6 border-b-2 transition-all cursor-pointer ${
                   mode === 'login'
-                    ? 'border-ink-light dark:border-ink-dark text-ink-light dark:text-ink-dark font-bold'
-                    : 'border-transparent text-neutral-400'
+                    ? 'border-[#141414] dark:border-white text-[#141414] dark:text-white font-bold'
+                    : 'border-transparent text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'
                 }`}
               >
                 Log In
               </button>
               <button
                 onClick={() => { setMode('signup'); setError(null); }}
-                className={`text-xs font-mono uppercase tracking-widest pb-2 border-b-2 transition-all ${
+                className={`text-xs font-mono uppercase tracking-widest pb-2 border-b-2 transition-all cursor-pointer ${
                   mode === 'signup'
-                    ? 'border-ink-light dark:border-ink-dark text-ink-light dark:text-ink-dark font-bold'
-                    : 'border-transparent text-neutral-400'
+                    ? 'border-[#141414] dark:border-white text-[#141414] dark:text-white font-bold'
+                    : 'border-transparent text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'
                 }`}
               >
                 Sign Up
@@ -132,7 +132,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, initialMode, onClo
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="operator_12"
-                      className="w-full pl-9 pr-3 py-2 bg-paper-light dark:bg-paper-dark border border-borderMuted-light dark:border-borderMuted-dark rounded text-xs"
+                      className="w-full pl-9 pr-3 py-2 bg-paper-light dark:bg-paper-dark border border-borderMuted-light dark:border-borderMuted-dark text-ink-light dark:text-ink-dark placeholder:text-neutral-400 dark:placeholder:text-neutral-500 rounded text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     />
                   </div>
                 </div>
@@ -148,7 +148,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, initialMode, onClo
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@skyguard.in"
-                    className="w-full pl-9 pr-3 py-2 bg-paper-light dark:bg-paper-dark border border-borderMuted-light dark:border-borderMuted-dark rounded text-xs"
+                    className="w-full pl-9 pr-3 py-2 bg-paper-light dark:bg-paper-dark border border-borderMuted-light dark:border-borderMuted-dark text-ink-light dark:text-ink-dark placeholder:text-neutral-400 dark:placeholder:text-neutral-500 rounded text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
                 </div>
               </div>
@@ -164,7 +164,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, initialMode, onClo
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-9 pr-3 py-2 bg-paper-light dark:bg-paper-dark border border-borderMuted-light dark:border-borderMuted-dark rounded text-xs"
+                    className="w-full pl-9 pr-3 py-2 bg-paper-light dark:bg-paper-dark border border-borderMuted-light dark:border-borderMuted-dark text-ink-light dark:text-ink-dark placeholder:text-neutral-400 dark:placeholder:text-neutral-500 rounded text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
                 </div>
               </div>
@@ -177,10 +177,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, initialMode, onClo
                     <select
                       value={role}
                       onChange={(e) => setRole(e.target.value as 'operator' | 'admin')}
-                      className="w-full pl-9 pr-3 py-2 bg-paper-light dark:bg-paper-dark border border-borderMuted-light dark:border-borderMuted-dark rounded text-xs appearance-none"
+                      className="w-full pl-9 pr-3 py-2 bg-paper-light dark:bg-paper-dark border border-borderMuted-light dark:border-borderMuted-dark text-ink-light dark:text-ink-dark rounded text-xs appearance-none focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     >
-                      <option value="operator">Field Operator</option>
-                      <option value="admin">System Administrator</option>
+                      <option value="operator" className="bg-white dark:bg-[#141820] text-black dark:text-white">Field Operator</option>
+                      <option value="admin" className="bg-white dark:bg-[#141820] text-black dark:text-white">System Administrator</option>
                     </select>
                   </div>
                 </div>
@@ -189,7 +189,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, initialMode, onClo
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 mt-2 bg-ink-light dark:bg-ink-dark text-surface-light dark:text-surface-dark font-mono text-xs uppercase tracking-widest rounded disabled:opacity-50"
+                className="w-full py-2.5 mt-2 bg-[#141414] dark:bg-white text-white dark:text-[#141414] hover:bg-[#262626] dark:hover:bg-[#e0e0e0] font-mono text-xs font-bold uppercase tracking-widest rounded transition-all disabled:opacity-50 cursor-pointer shadow-sm"
               >
                 {loading ? 'Processing...' : mode === 'login' ? 'Sign In' : 'Register Profile'}
               </button>

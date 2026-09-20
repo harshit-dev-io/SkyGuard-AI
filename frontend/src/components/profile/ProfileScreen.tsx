@@ -206,7 +206,13 @@ export const ProfileScreen: React.FC = () => {
 
               <div className="flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-neutral-800/60">
                 <span className="text-[#71717A] dark:text-[#94A3B8]">Assigned Role:</span>
-                <span className="uppercase text-emerald-600 dark:text-emerald-400 font-bold">
+                <span
+                  className={`uppercase font-bold text-[11px] px-2 py-0.5 rounded-full border ${
+                    user?.role === 'admin'
+                      ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800/50'
+                      : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50'
+                  }`}
+                >
                   {user?.role}
                 </span>
               </div>
@@ -227,6 +233,48 @@ export const ProfileScreen: React.FC = () => {
               <div className="flex items-center justify-between py-1.5">
                 <span className="text-[#71717A] dark:text-[#94A3B8]">Telemetry Scope:</span>
                 <span className="text-[#18181B] dark:text-[#F8FAFC]">500+ AWS Stations</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Role-Based Permissions Overview */}
+          <div className="rounded-2xl border border-[#E5E3DC] dark:border-[#232936] bg-white dark:bg-[#151921] p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E5E3DC] dark:border-[#232936] pb-3">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                <h3 className="font-mono text-xs uppercase tracking-wider font-bold text-[#18181B] dark:text-[#F8FAFC]">
+                  Navigation &amp; Access Scope
+                </h3>
+              </div>
+              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 font-bold">
+                RBAC
+              </span>
+            </div>
+
+            <div className="space-y-2 text-xs font-mono">
+              <div className="flex items-center justify-between p-2 rounded-lg bg-neutral-50 dark:bg-neutral-900/50">
+                <span className="text-neutral-600 dark:text-neutral-400">Fleet Telemetry &amp; KPIs:</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Granted</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-neutral-50 dark:bg-neutral-900/50">
+                <span className="text-neutral-600 dark:text-neutral-400">Geospatial Station Map:</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Granted</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-neutral-50 dark:bg-neutral-900/50">
+                <span className="text-neutral-600 dark:text-neutral-400">Explainability &amp; Invariants:</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Granted</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-neutral-50 dark:bg-neutral-900/50">
+                <span className="text-neutral-600 dark:text-neutral-400">Manage AWS &amp; Simulator:</span>
+                <span
+                  className={
+                    user?.role === 'admin'
+                      ? 'text-purple-600 dark:text-purple-400 font-bold'
+                      : 'text-neutral-400 dark:text-neutral-600 font-medium'
+                  }
+                >
+                  {user?.role === 'admin' ? 'Admin Full Access' : 'Restricted (Admin Only)'}
+                </span>
               </div>
             </div>
           </div>
