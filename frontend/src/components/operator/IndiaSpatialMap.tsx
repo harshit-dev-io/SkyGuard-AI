@@ -1,202 +1,384 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDashboard } from '../../context/DashboardContext';
 import type { StationGeoNode, StationStatus } from '../../types/dashboard';
+import {
+  Layers,
+  Crosshair,
+  Plus,
+  Minus,
+  RefreshCw,
+} from 'lucide-react';
 
 export const IndiaSpatialMap: React.FC = () => {
-  const { stations, selectedStation, setSelectedStation } = useDashboard();
+  const {
+    stations,
+    selectedStation,
+    setSelectedStation,
+    isLive,
+    setIsLive,
+    refreshAll,
+    fetchInspectionForStation,
+    setSelectedInspection,
+    anomalyFeed,
+  } = useDashboard();
+
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [mapLayer, setMapLayer] = useState<'satellite' | 'terrain'>('satellite');
 
   const getStatusColor = (status: StationStatus) => {
     switch (status) {
       case 'HEALTHY':
-        return '#16A34A'; // Green
+        return '#6ece9d'; // Mint signal
       case 'LOCAL_EXTREME':
-        return '#2563EB'; // Blue
+        return '#ffda6e'; // Sunshine highlight
       case 'SENSOR_FAULT':
-        return '#DC2626'; // Red
+        return '#ef4444'; // Red fault signal
       case 'CALIBRATION_DRIFT':
-        return '#F59E0B'; // Amber
+        return '#f59e0b'; // Amber drift signal
       case 'UNKNOWN_DUAL':
-        return '#64748B'; // Slate
+      default:
+        return '#707070'; // Graphite
     }
   };
 
-  return (
-    <div className="p-6 rounded-2xl border border-[#E5E3DC] dark:border-[#232936] bg-white dark:bg-[#151921] shadow-card">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="font-serif text-lg font-bold text-[#18181B] dark:text-[#F8FAFC]">
-            Geospatial Topology &amp; Sensor Health
-          </h2>
-          <p className="text-[11px] font-mono text-[#71717A] dark:text-[#94A3B8]">
-            Interactive KD-Tree correlation mesh over national AWS network
-          </p>
-        </div>
+  const getStatusLabel = (status: StationStatus) => {
+    switch (status) {
+      case 'HEALTHY': return 'Healthy';
+      case 'LOCAL_EXTREME': return 'Extreme Event';
+      case 'SENSOR_FAULT': return 'Fault';
+      case 'CALIBRATION_DRIFT': return 'Drift';
+      case 'UNKNOWN_DUAL': return 'Unknown';
+      default: return 'Unknown';
+    }
+  };
 
-        {/* Legend */}
-        <div className="flex items-center gap-3 text-[10px] font-mono uppercase">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
-            <span className="text-[#71717A] dark:text-[#94A3B8]">Healthy</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#2563EB]" />
-            <span className="text-[#71717A] dark:text-[#94A3B8]">Extreme Event</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#DC2626]" />
-            <span className="text-[#71717A] dark:text-[#94A3B8]">Fault</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#F59E0B]" />
-            <span className="text-[#71717A] dark:text-[#94A3B8]">Drift</span>
-          </div>
+  const handleStationClick = (st: StationGeoNode) => {
+    setSelectedStation(st);
+    const matched = anomalyFeed.find((a) => a.stationId === st.id);
+    if (matched && matched.inspection) {
+      setSelectedInspection(matched.inspection);
+    } else {
+      fetchInspectionForStation(st.id);
+    }
+  };
+
+  // Dynamically calculate connections between adjacent stations
+  const connections: [StationGeoNode, StationGeoNode][] = [];
+  if (stations.length > 1) {
+    for (let i = 0; i < stations.length; i++) {
+      for (let j = i + 1; j < stations.length; j++) {
+        const s1 = stations[i];
+        const s2 = stations[j];
+        // Connect if explicit neighbor or within reasonable distance
+        const dx = s1.x - s2.x;
+        const dy = s1.y - s2.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 140) {
+          connections.push([s1, s2]);
+        }
+      }
+    }
+  }
+
+  // Anomalous stations to render callouts dynamically
+  const anomalousStations = stations.filter((s) => s.status !== 'HEALTHY');
+
+  return (
+    <div className="p-5 rounded-[24px] border border-[#e0e0e0] dark:border-[#282e3a] bg-white dark:bg-[#16191f] flex flex-col h-full transition-colors">
+      {/* Card Header & Controls */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3 pb-3 border-b border-[#f0f0f0] dark:border-[#282e3a]">
+        <h3 className="text-base font-bold text-[#141414] dark:text-white">
+          Spatial Telemetry Network (India AWS Fleet)
+        </h3>
+
+        <div className="flex items-center gap-2">
+          {/* Live Indicator */}
+          <button
+            onClick={() => setIsLive(!isLive)}
+            title="Toggle Live Polling"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-[#e0e0e0] dark:border-[#282e3a] bg-[#f3f3f3] dark:bg-[#1c2028] text-[#141414] dark:text-white cursor-pointer hover:bg-[#e0e0e0] dark:hover:bg-[#282e3a] transition-colors"
+          >
+            <span
+              className={`w-2 h-2 rounded-full bg-[#0066ff] ${
+                isLive ? 'animate-pulse' : 'opacity-40'
+              }`}
+            />
+            <span>{isLive ? 'Live' : 'Paused'}</span>
+          </button>
+
+          {/* Refresh Rate Badge */}
+          <button
+            onClick={() => refreshAll()}
+            title="Force Telemetry Sync"
+            className="flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-medium text-[#707070] dark:text-[#9e9e9e] border border-[#e0e0e0] dark:border-[#282e3a] bg-[#f3f3f3] dark:bg-[#1c2028] hover:bg-[#e0e0e0] dark:hover:bg-[#282e3a] transition-colors cursor-pointer"
+          >
+            <RefreshCw className="w-3 h-3 text-[#0066ff]" />
+            <span>Refresh: 5s</span>
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-        {/* Map Canvas */}
-        <div className="lg:col-span-8 relative flex items-center justify-center p-4 bg-[#FAF8F5] dark:bg-[#0D0F12] rounded-xl border border-[#E5E3DC] dark:border-[#232936] overflow-hidden">
-          <svg viewBox="0 0 400 400" className="w-full max-w-[420px] h-auto select-none">
-            {/* Minimalist Stylized Vector Outline of Indian Peninsula */}
-            <path
-              d="M170,70 L200,60 L220,85 L210,110 L250,115 L280,120 L350,135 L330,175 L280,185 L260,240 L220,290 L185,360 L160,320 L135,260 L125,210 L140,160 L130,130 L160,110 Z"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1"
-              className="text-[#E5E3DC] dark:text-[#232936]"
+      {/* Map Container */}
+      <div className="relative w-full flex-1 min-h-[380px] lg:min-h-[440px] rounded-[16px] overflow-hidden bg-[#0A1118] border border-[#e0e0e0] dark:border-[#282e3a] flex items-center justify-center select-none">
+        {/* Satellite / Ocean Background */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'radial-gradient(ellipse at center, #122332 0%, #0A141F 50%, #04080D 100%)',
+          }}
+        />
+
+        {/* Topographic Relief */}
+        <div
+          className="absolute inset-0 opacity-40 mix-blend-screen pointer-events-none"
+          style={{
+            backgroundImage:
+              'radial-gradient(ellipse at 50% 40%, rgba(30, 80, 50, 0.45) 0%, rgba(15, 45, 60, 0.3) 50%, rgba(4, 12, 20, 0.9) 100%)',
+          }}
+        />
+
+        {/* Ocean Labels */}
+        <div className="absolute bottom-16 left-8 italic text-xs tracking-wider text-[#6ece9d]/30 pointer-events-none select-none">
+          Arabian Sea
+        </div>
+        <div className="absolute bottom-16 right-16 italic text-xs tracking-wider text-[#6ece9d]/30 pointer-events-none select-none">
+          Bay of Bengal
+        </div>
+
+        {/* Neighboring Country Labels */}
+        <div className="absolute top-24 left-10 text-[10px] tracking-widest uppercase font-medium text-[#707070]/40 pointer-events-none select-none">
+          PAKISTAN
+        </div>
+        <div className="absolute top-20 right-28 text-[10px] tracking-widest uppercase font-medium text-[#707070]/40 pointer-events-none select-none">
+          BHUTAN
+        </div>
+        <div className="absolute top-36 right-20 text-[10px] tracking-widest uppercase font-medium text-[#707070]/40 pointer-events-none select-none">
+          BANGLADESH
+        </div>
+        <div className="absolute top-44 right-6 text-[10px] tracking-widest uppercase font-medium text-[#707070]/40 pointer-events-none select-none">
+          MYANMAR
+        </div>
+
+        {/* SVG Visualization Canvas */}
+        <svg
+          viewBox="0 0 400 400"
+          className="w-full h-full max-w-[560px] select-none transition-transform duration-300"
+          style={{ transform: `scale(${zoomLevel})` }}
+        >
+          {/* India Landmass Outline */}
+          <path
+            d="M 125,75 
+               C 135,65 145,55 160,55 
+               C 175,55 190,70 195,85 
+               C 210,85 230,105 245,115 
+               C 260,120 285,120 300,130 
+               C 315,140 330,140 335,150 
+               C 320,165 305,170 290,175 
+               C 275,180 265,195 255,205 
+               C 245,215 235,235 225,255 
+               C 215,275 200,305 185,340 
+               C 175,345 165,335 160,315 
+               C 150,295 135,260 120,240 
+               C 110,225 105,200 100,175 
+               C 95,155 105,135 115,115 
+               Z"
+            fill="rgba(22, 52, 40, 0.55)"
+            stroke="rgba(110, 206, 157, 0.35)"
+            strokeWidth="1.2"
+            strokeLinejoin="round"
+          />
+
+          {/* Northern Himalayan Ridge */}
+          <path
+            d="M 140,75 Q 210,85 290,130 Q 325,145 335,150"
+            fill="none"
+            stroke="rgba(180, 210, 190, 0.25)"
+            strokeWidth="1.5"
+            strokeDasharray="4,3"
+          />
+
+          {/* KD-Tree Mesh Connections */}
+          {connections.map(([st1, st2]) => (
+            <line
+              key={`${st1.id}-${st2.id}`}
+              x1={st1.x}
+              y1={st1.y}
+              x2={st2.x}
+              y2={st2.y}
+              stroke="rgba(110, 206, 157, 0.3)"
+              strokeWidth="0.85"
+              strokeDasharray="3,3"
+              className="pointer-events-none"
             />
+          ))}
 
-            {/* KD-Tree Mesh Connections */}
-            {stations.map((st) =>
-              st.neighbors.map((nId) => {
-                const neighbor = stations.find((s) => s.id === nId);
-                if (!neighbor) return null;
-                return (
-                  <line
-                    key={`${st.id}-${neighbor.id}`}
-                    x1={st.x}
-                    y1={st.y}
-                    x2={neighbor.x}
-                    y2={neighbor.y}
-                    stroke="currentColor"
-                    strokeWidth="0.75"
-                    strokeDasharray="3,3"
-                    className="text-neutral-300 dark:text-neutral-700 pointer-events-none"
-                  />
-                );
-              })
-            )}
+          {/* Station Nodes */}
+          {stations.map((st) => {
+            const isSelected = selectedStation?.id === st.id;
+            const color = getStatusColor(st.status);
+            const isAnomaly = st.status !== 'HEALTHY';
 
-            {/* Station Pins */}
-            {stations.map((st) => {
-              const isSelected = selectedStation?.id === st.id;
-              const color = getStatusColor(st.status);
-
-              return (
-                <g
-                  key={st.id}
-                  onClick={() => setSelectedStation(st)}
-                  className="cursor-pointer group"
-                >
-                  {/* Halo Pulse for Extreme Event / Fault */}
-                  {(st.status === 'LOCAL_EXTREME' || st.status === 'SENSOR_FAULT') && (
-                    <circle
-                      cx={st.x}
-                      cy={st.y}
-                      r={isSelected ? 14 : 9}
-                      fill={color}
-                      opacity="0.25"
-                      className="animate-ping"
-                    />
-                  )}
-
-                  {/* Outer ring */}
+            return (
+              <g
+                key={st.id}
+                onClick={() => handleStationClick(st)}
+                className="cursor-pointer group"
+              >
+                {/* Pulsing Halo for Anomalous / Selected */}
+                {(isAnomaly || isSelected) && (
                   <circle
                     cx={st.x}
                     cy={st.y}
-                    r={isSelected ? 8 : 5}
-                    fill="white"
+                    r={isSelected ? 10 : 7}
+                    fill="none"
                     stroke={color}
-                    strokeWidth={isSelected ? 3 : 2}
+                    strokeWidth="1.5"
+                    className="animate-ping opacity-60"
                   />
+                )}
 
-                  {/* Inner center */}
-                  <circle cx={st.x} cy={st.y} r={isSelected ? 3.5 : 2} fill={color} />
+                {/* Node */}
+                <circle
+                  cx={st.x}
+                  cy={st.y}
+                  r={isSelected ? 6 : 4}
+                  fill={color}
+                  stroke="#f8f5ed"
+                  strokeWidth={isSelected ? 2 : 1}
+                  className="transition-all duration-150"
+                />
+              </g>
+            );
+          })}
 
-                  {/* Station Tag */}
-                  <text
-                    x={st.x + 8}
-                    y={st.y + 3}
-                    className="text-[9px] font-mono fill-[#18181B] dark:fill-[#F8FAFC] opacity-80 group-hover:opacity-100 font-bold"
-                  >
-                    {st.id}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
-        </div>
+          {/* Dynamically rendered Callout Badges for Selected or Anomalous Stations */}
+          {(selectedStation ? [selectedStation] : anomalousStations.slice(0, 2)).map((st) => {
+            const isFault = st.status === 'SENSOR_FAULT';
+            const label = getStatusLabel(st.status);
 
-        {/* Selected Station Telemetry Strip */}
-        <div className="lg:col-span-4 space-y-4">
-          {selectedStation ? (
-            <div className="p-4 rounded-xl border border-[#E5E3DC] dark:border-[#232936] bg-[#FAF8F5] dark:bg-[#0D0F12]">
-              <div className="flex items-center justify-between pb-2 border-b border-[#E5E3DC] dark:border-[#232936]">
-                <span className="font-mono text-xs font-bold text-[#18181B] dark:text-[#F8FAFC]">
-                  {selectedStation.id}
-                </span>
-                <span
-                  className="text-[9px] font-mono px-2 py-0.5 rounded text-white font-bold"
-                  style={{ backgroundColor: getStatusColor(selectedStation.status) }}
+            return (
+              <g
+                key={`callout-${st.id}`}
+                transform={`translate(${st.x - 29}, ${st.y - 36})`}
+                onClick={() => handleStationClick(st)}
+                className="cursor-pointer select-none"
+              >
+                <line x1="29" y1="24" x2="29" y2="34" stroke="#f8f5ed" strokeWidth="1" strokeDasharray="2,2" />
+                <rect
+                  x="0"
+                  y="0"
+                  width="58"
+                  height="24"
+                  rx="12"
+                  fill="#f8f5ed"
+                  stroke="#000000"
+                  strokeWidth="1"
+                />
+                <text
+                  x="29"
+                  y="10"
+                  fill="#000000"
+                  fontSize="8"
+                  fontWeight="600"
+                  fontFamily="DM Sans, sans-serif"
+                  textAnchor="middle"
                 >
-                  {selectedStation.status}
-                </span>
-              </div>
+                  {st.id}
+                </text>
+                <text
+                  x="29"
+                  y="19"
+                  fill={isFault ? '#ef4444' : '#707070'}
+                  fontSize="7"
+                  fontWeight="500"
+                  fontFamily="DM Sans, sans-serif"
+                  textAnchor="middle"
+                >
+                  {label}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
 
-              <div className="mt-3 space-y-2 text-xs font-mono">
-                <div className="flex justify-between text-[#71717A] dark:text-[#94A3B8]">
-                  <span>Site:</span>
-                  <span className="text-[#18181B] dark:text-[#F8FAFC] font-semibold">{selectedStation.name}</span>
-                </div>
-                <div className="flex justify-between text-[#71717A] dark:text-[#94A3B8]">
-                  <span>Elevation / Coord:</span>
-                  <span className="text-[#18181B] dark:text-[#F8FAFC]">{selectedStation.elevation}m · {selectedStation.lat.toFixed(2)}N</span>
-                </div>
-                <div className="flex justify-between text-[#71717A] dark:text-[#94A3B8]">
-                  <span>Relative Humidity:</span>
-                  <span className={`font-bold ${selectedStation.rh > 98 ? 'text-rose-500' : 'text-[#18181B] dark:text-[#F8FAFC]'}`}>{selectedStation.rh}%</span>
-                </div>
-                <div className="flex justify-between text-[#71717A] dark:text-[#94A3B8]">
-                  <span>Temperature / Dew Pt:</span>
-                  <span className="text-[#18181B] dark:text-[#F8FAFC]">{selectedStation.temp}°C / {selectedStation.dewPoint}°C</span>
-                </div>
-                <div className="flex justify-between text-[#71717A] dark:text-[#94A3B8]">
-                  <span>Barometric Pressure:</span>
-                  <span className="text-[#18181B] dark:text-[#F8FAFC]">{selectedStation.pressure} hPa</span>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-[#E5E3DC] dark:border-[#232936]">
-                <span className="text-[10px] font-mono uppercase text-[#71717A] dark:text-[#94A3B8] block mb-1">
-                  Static Candidate Neighbors:
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedStation.neighbors.map((n) => (
-                    <span
-                      key={n}
-                      className="text-[9px] font-mono px-2 py-0.5 rounded border border-[#E5E3DC] dark:border-[#232936] text-[#71717A] dark:text-[#94A3B8]"
-                    >
-                      {n}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p className="text-xs font-mono text-[#71717A]">Select a station pin to view telemetry.</p>
-          )}
+        {/* Top-Right Legend */}
+        <div className="absolute top-4 right-4 bg-cream/95 dark:bg-[#161817]/95 backdrop-blur border border-ink/20 dark:border-cream/20 rounded-cards p-3 space-y-2 select-none shadow-none transition-colors">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#6ece9d]" />
+            <span className="text-[11px] text-ink dark:text-cream">Healthy</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#ffda6e]" />
+            <span className="text-[11px] text-ink dark:text-cream">Extreme Event</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#ef4444]" />
+            <span className="text-[11px] text-ink dark:text-cream">Fault</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#f59e0b]" />
+            <span className="text-[11px] text-ink dark:text-cream">Drift</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#707070]" />
+            <span className="text-[11px] text-ink dark:text-cream">Unknown</span>
+          </div>
         </div>
+
+        {/* Bottom-Right Zoom & View Controls */}
+        <div className="absolute bottom-4 right-4 flex items-center gap-1.5 bg-cream/90 dark:bg-[#161817]/90 border border-ink/20 dark:border-cream/20 rounded-buttons p-1 select-none transition-colors">
+          <button
+            onClick={() => setZoomLevel((z) => Math.min(2.0, z + 0.2))}
+            aria-label="Zoom In"
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-sunshine/30 text-ink dark:text-cream transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => setZoomLevel((z) => Math.max(0.8, z - 0.2))}
+            aria-label="Zoom Out"
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-sunshine/30 text-ink dark:text-cream transition-colors"
+          >
+            <Minus className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => setZoomLevel(1)}
+            aria-label="Reset View"
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-sunshine/30 text-ink dark:text-cream transition-colors"
+          >
+            <Crosshair className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Selected Station Overlay Banner */}
+        {selectedStation && (
+          <div className="absolute bottom-4 left-4 bg-cream/95 dark:bg-[#161817]/95 border border-ink/20 dark:border-cream/20 rounded-cards px-4 py-2.5 flex items-center gap-3 select-none transition-colors">
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: getStatusColor(selectedStation.status) }}
+            />
+            <div className="flex flex-col">
+              <span className="text-xs font-semibold text-ink dark:text-cream">
+                {selectedStation.id} · {selectedStation.name}
+              </span>
+              <span className="text-[10px] text-graphite dark:text-darkMuted">
+                {selectedStation.lat.toFixed(3)}°N, {selectedStation.lng.toFixed(3)}°E · Elev: {selectedStation.elevation}m
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Empty state overlay when no stations registered */}
+        {stations.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm pointer-events-none">
+            <span className="text-xs text-cream tracking-wide">
+              Awaiting geospatial station telemetry from backend...
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
+export default IndiaSpatialMap;

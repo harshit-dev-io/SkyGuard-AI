@@ -1,3 +1,16 @@
+# Environment variables & credentials
+.env
+.env.*
+!.env.example
+*.env
+*.pem
+*.key
+*.cert
+*.crt
+credentials.json
+serviceAccountKey.json
+client_secret*.json
+
 # Logs
 logs
 *.log
@@ -7,10 +20,12 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies and build
 node_modules
 dist
 dist-ssr
 *.local
+*.tsbuildinfo
 
 # Editor directories and files
 .vscode/*

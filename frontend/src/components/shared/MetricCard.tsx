@@ -15,21 +15,21 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   badge,
 }) => {
   return (
-    <div className="p-4 rounded-xl border border-[#E5E3DC] dark:border-[#232936] bg-white dark:bg-[#151921] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_25px_-2px_rgba(0,0,0,0.4)] transition-all">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-mono uppercase tracking-widest text-[#71717A] dark:text-[#94A3B8]">
+    <div className="p-5 rounded-[24px] border border-[#e0e0e0] dark:border-[#282e3a] bg-white dark:bg-[#16191f] transition-colors">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-xs text-[#707070] dark:text-[#9e9e9e] uppercase font-semibold">
           {label}
         </span>
         {badge && (
-          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-[#E5E3DC] dark:border-[#232936] text-[#71717A] dark:text-[#94A3B8]">
+          <span className="text-[10px] px-2.5 py-0.5 rounded-full border border-[#0066ff]/30 bg-[#0066ff]/10 text-[#0066ff] font-bold">
             {badge}
           </span>
         )}
       </div>
-      <div className="text-2xl font-serif font-bold text-[#18181B] dark:text-[#F8FAFC]">
+      <div className="text-2xl font-bold text-[#141414] dark:text-white">
         {value}
       </div>
-      <div className="text-[11px] font-mono text-[#71717A] dark:text-[#94A3B8] mt-1">
+      <div className="text-xs text-[#707070] dark:text-[#9e9e9e] mt-1 font-normal">
         {subtext}
       </div>
     </div>

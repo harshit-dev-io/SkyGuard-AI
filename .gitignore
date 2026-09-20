@@ -1,10 +1,41 @@
+# Environment variables and secrets
 .env
+.env.*
+!.env.example
+*.env
+*.pem
+*.key
+*.cert
+*.crt
+credentials.json
+serviceAccountKey.json
+client_secret*.json
+secrets/
+credentials/
+
+# Python
 *.pyc
 __pycache__/
-.aider*
-node_modules/
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
 
+# Node & Frontend
 node_modules/
 **/node_modules/
-docs/
+dist/
+dist-ssr/
+*.tsbuildinfo
+
+# IDE & OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
 settings.json
+.aider*
+
+# Docs / miscellaneous
+docs/

@@ -16,8 +16,8 @@ interface AuthContextType {
   loginWithToken: (accessToken: string, refreshToken?: string) => Promise<void>;
   logout: () => void;
 }
+import { API_BASE_URL } from '../config/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Lock, Mail, User, Shield, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
+import { API_BASE_URL } from '../config/api';
 
 interface AuthModalProps {
   isOpen: boolean;
