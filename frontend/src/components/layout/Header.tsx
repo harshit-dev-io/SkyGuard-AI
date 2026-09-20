@@ -3,7 +3,7 @@ import { useDashboard } from '../../context/DashboardContext';
 import type { DashboardTab } from '../../context/DashboardContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
-import { CloudLightning, Sun, Moon } from 'lucide-react';
+import { CloudLightning, Sun, Moon, Shield, Activity } from 'lucide-react';
 
 interface ProfileAvatarProps {
   onClick: () => void;
@@ -34,7 +34,7 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ onClick, isActive 
   return (
     <button
       onClick={onClick}
-      title={user ? `${user.username} (${user.role}) - View Profile` : 'User Profile'}
+      title={user ? `${user.username} (${user.role.toUpperCase()}) - View Profile` : 'User Profile'}
       aria-label="User profile settings"
       className={`relative w-9 h-9 rounded-full flex items-center justify-center font-semibold text-xs transition-all cursor-pointer select-none ${
         isActive
@@ -50,6 +50,7 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ onClick, isActive 
 };
 
 export const Header: React.FC = () => {
+  const { user } = useAuth();
   const { activeTab, setActiveTab, anomalyFeed } = useDashboard();
   const { theme, toggleTheme, isDark } = useTheme();
 
@@ -58,11 +59,15 @@ export const Header: React.FC = () => {
     (a) => a.state === 'SENSOR_FAULT' || a.state === 'LOCAL_EXTREME' || a.state === 'SUSPICIOUS'
   ).length;
 
+  // Role-based navigation items
   const navItems: { id: DashboardTab; label: string; hasBadge?: boolean }[] = [
     { id: 'fleet', label: 'Fleet View' },
     { id: 'station', label: 'Station View' },
     { id: 'explainability', label: 'Explainability' },
     { id: 'alerts', label: 'Alerts', hasBadge: true },
+    ...(user?.role === 'admin'
+      ? [{ id: 'manage_aws' as DashboardTab, label: 'Manage AWS' }]
+      : []),
   ];
 
   return (
@@ -119,6 +124,25 @@ export const Header: React.FC = () => {
 
         {/* Section 3: Header Actions & Profile Avatar (Right) */}
         <div className="flex items-center gap-2.5 shrink-0">
+          {/* Role Indicator Badge */}
+          {user && (
+            <div
+              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold uppercase tracking-wider border select-none ${
+                user.role === 'admin'
+                  ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/60'
+                  : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
+              }`}
+              title={`Role: ${user.role.toUpperCase()} (from backend)`}
+            >
+              {user.role === 'admin' ? (
+                <Shield className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+              ) : (
+                <Activity className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+              )}
+              <span>{user.role}</span>
+            </div>
+          )}
+
           {/* Quick theme icon toggle - Mobbin pill button */}
           <button
             onClick={toggleTheme}
@@ -139,6 +163,31 @@ export const Header: React.FC = () => {
             isActive={activeTab === 'profile'}
           />
         </div>
+      </div>
+
+      {/* Mobile Horizontal Navigation Strip */}
+      <div className="md:hidden border-t border-[#e0e0e0] dark:border-[#282e3a] px-4 py-2 flex items-center gap-1.5 overflow-x-auto scrollbar-none bg-[#fafafa] dark:bg-[#111317]">
+        {navItems.map((item) => {
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`px-3 py-1 rounded-full text-xs whitespace-nowrap transition-all flex items-center gap-1 shrink-0 ${
+                isActive
+                  ? 'bg-white dark:bg-[#282e3a] text-[#141414] dark:text-white font-semibold shadow-xs border border-[#e0e0e0] dark:border-[#384050]'
+                  : 'text-[#707070] dark:text-[#9e9e9e]'
+              }`}
+            >
+              <span>{item.label}</span>
+              {item.hasBadge && alertCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-[#0066ff] text-white text-[9px] flex items-center justify-center font-bold">
+                  {alertCount}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
     </header>
   );

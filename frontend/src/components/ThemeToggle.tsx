@@ -11,7 +11,7 @@ export const ThemeToggle: React.FC = () => {
     <button
       onClick={toggleTheme}
       aria-label="Toggle theme"
-      className="relative flex items-center justify-between w-14 h-7 p-1 rounded-full border border-borderMuted-light dark:border-borderMuted-dark bg-paper-light dark:bg-paper-dark transition-colors duration-300"
+      className="relative flex items-center justify-between w-14 h-7 p-1 rounded-full border border-borderMuted-light dark:border-borderMuted-dark bg-paper-light dark:bg-paper-dark transition-colors duration-300 cursor-pointer"
     >
       <Sun className="w-3.5 h-3.5 text-amber-500 ml-1 z-10" />
       <Moon className="w-3.5 h-3.5 text-slate-400 mr-1 z-10" />
