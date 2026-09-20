@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDashboard } from '../../context/DashboardContext';
-import { ShieldCheck, ShieldAlert, GitCommit, ArrowRight, X } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, ArrowRight, X } from 'lucide-react';
 
 export const ExplainabilityDrawer: React.FC = () => {
   const { selectedAnomaly, setSelectedAnomaly } = useDashboard();
@@ -8,102 +8,102 @@ export const ExplainabilityDrawer: React.FC = () => {
   if (!selectedAnomaly) return null;
 
   return (
-    <div className="mt-6 p-6 rounded-2xl border border-[#E5E3DC] dark:border-[#232936] bg-[#FDFBF7] dark:bg-[#12161D] transition-all">
-      <div className="flex items-center justify-between pb-4 border-b border-[#E5E3DC] dark:border-[#232936]">
+    <div className="mt-4 p-5 rounded-[24px] border border-[#e0e0e0] dark:border-[#282e3a] bg-white dark:bg-[#16191f] transition-colors">
+      <div className="flex items-center justify-between pb-3 border-b border-[#f0f0f0] dark:border-[#282e3a]">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#E5E3DC] dark:bg-[#232936] text-[#18181B] dark:text-[#F8FAFC] font-bold">
+            <span className="text-xs px-3 py-0.5 rounded-full bg-[#f3f3f3] dark:bg-[#1c2028] text-[#141414] dark:text-white border border-[#e0e0e0] dark:border-[#282e3a] font-semibold uppercase">
               XAI INSPECTOR
             </span>
-            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[#18181B] dark:text-[#F8FAFC]">
+            <h2 className="text-sm font-bold text-[#141414] dark:text-white">
               Station {selectedAnomaly.stationId} — Case {selectedAnomaly.id}
             </h2>
           </div>
-          <p className="text-[11px] font-mono text-[#71717A] dark:text-[#94A3B8] mt-1">
-            Attribution: <span className="font-semibold">{selectedAnomaly.faultAttribution}</span> · Timestamp: {selectedAnomaly.timestamp}
+          <p className="text-xs sm:text-sm text-[#707070] dark:text-[#9e9e9e] mt-1 font-normal">
+            Attribution: <span className="font-semibold text-[#141414] dark:text-white">{selectedAnomaly.faultAttribution}</span> · Timestamp: {selectedAnomaly.timestamp}
           </p>
         </div>
 
         <button
           onClick={() => setSelectedAnomaly(null)}
-          className="p-1 rounded text-[#71717A] hover:text-[#18181B] dark:hover:text-white"
+          className="w-7 h-7 rounded-full bg-[#f3f3f3] dark:bg-[#1c2028] text-[#707070] dark:text-[#9e9e9e] hover:text-[#141414] dark:hover:text-white flex items-center justify-center cursor-pointer transition-colors"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
         {/* Sonntag Gate Invariant */}
-        <div className="p-4 rounded-xl border border-[#E5E3DC] dark:border-[#232936] bg-white dark:bg-[#151921]">
+        <div className="p-4 rounded-[18px] border border-[#e0e0e0] dark:border-[#282e3a] bg-[#f3f3f3]/50 dark:bg-[#121417]">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-mono uppercase text-[#71717A] dark:text-[#94A3B8]">
+            <span className="text-xs text-[#707070] dark:text-[#9e9e9e] uppercase font-semibold">
               Physical Sonntag Invariant
             </span>
             {selectedAnomaly.sonntagGatePassed ? (
-              <ShieldCheck className="w-4 h-4 text-emerald-500" />
+              <ShieldCheck className="w-4 h-4 text-[#0066ff]" />
             ) : (
-              <ShieldAlert className="w-4 h-4 text-rose-500" />
+              <ShieldAlert className="w-4 h-4 text-[#141414] dark:text-white" />
             )}
           </div>
-          <div className="font-mono text-xs font-bold text-[#18181B] dark:text-[#F8FAFC] mt-1">
+          <div className="text-sm font-semibold text-[#141414] dark:text-white mt-1">
             T_dew: {selectedAnomaly.tDew}°C ≤ T_raw: {selectedAnomaly.tRaw}°C
           </div>
-          <span className={`text-[10px] font-mono mt-2 inline-block ${selectedAnomaly.sonntagGatePassed ? 'text-emerald-600' : 'text-rose-500 font-bold'}`}>
+          <span className={`text-xs mt-2 inline-block font-semibold ${selectedAnomaly.sonntagGatePassed ? 'text-[#0066ff]' : 'text-[#141414] dark:text-white'}`}>
             {selectedAnomaly.sonntagGatePassed ? 'PASS (Thermodynamic Valid)' : 'FAIL (Invariant Breach)'}
           </span>
         </div>
 
         {/* TinyML Residual */}
-        <div className="p-4 rounded-xl border border-[#E5E3DC] dark:border-[#232936] bg-white dark:bg-[#151921]">
-          <span className="text-[10px] font-mono uppercase text-[#71717A] dark:text-[#94A3B8]">
+        <div className="p-4 rounded-[18px] border border-[#e0e0e0] dark:border-[#282e3a] bg-[#f3f3f3]/50 dark:bg-[#121417]">
+          <span className="text-xs text-[#707070] dark:text-[#9e9e9e] uppercase font-semibold">
             TinyML INT8 Residual
           </span>
-          <div className="font-mono text-xs font-bold text-[#18181B] dark:text-[#F8FAFC] mt-1">
+          <div className="text-sm font-semibold text-[#141414] dark:text-white mt-1">
             |y_hat - y| = {selectedAnomaly.tinyMlResidual}σ
           </div>
-          <p className="text-[10px] font-mono text-[#71717A] dark:text-[#94A3B8] mt-2">
+          <p className="text-xs text-[#707070] dark:text-[#9e9e9e] mt-2">
             Edge Arena ≤32KB · Monotonic sequence verified
           </p>
         </div>
 
         {/* Spatial Topology Agreement */}
-        <div className="p-4 rounded-xl border border-[#E5E3DC] dark:border-[#232936] bg-white dark:bg-[#151921]">
-          <span className="text-[10px] font-mono uppercase text-[#71717A] dark:text-[#94A3B8]">
+        <div className="p-4 rounded-[18px] border border-[#e0e0e0] dark:border-[#282e3a] bg-[#f3f3f3]/50 dark:bg-[#121417]">
+          <span className="text-xs text-[#707070] dark:text-[#9e9e9e] uppercase font-semibold">
             KD-Tree Consensus
           </span>
-          <div className="font-mono text-xs font-bold text-[#18181B] dark:text-[#F8FAFC] mt-1">
+          <div className="text-sm font-semibold text-[#141414] dark:text-white mt-1">
             Score: {selectedAnomaly.kdTreeConsensus} / 1.00
           </div>
-          <p className="text-[10px] font-mono text-[#71717A] dark:text-[#94A3B8] mt-2">
+          <p className="text-xs text-[#707070] dark:text-[#9e9e9e] mt-2">
             Terrain &amp; Elevation Normalized Correlation
           </p>
         </div>
 
         {/* Correction Provenance Guard */}
-        <div className="p-4 rounded-xl border border-[#E5E3DC] dark:border-[#232936] bg-white dark:bg-[#151921]">
-          <span className="text-[10px] font-mono uppercase text-[#71717A] dark:text-[#94A3B8]">
+        <div className="p-4 rounded-[18px] border border-[#e0e0e0] dark:border-[#282e3a] bg-[#f3f3f3]/50 dark:bg-[#121417]">
+          <span className="text-xs text-[#707070] dark:text-[#9e9e9e] uppercase font-semibold">
             State &amp; Provenance
           </span>
-          <div className="flex items-center gap-2 mt-1 text-xs font-mono font-bold">
-            <span className="text-neutral-500 line-through">{selectedAnomaly.rawReading}</span>
-            <ArrowRight className="w-3.5 h-3.5 text-neutral-400" />
-            <span className="text-emerald-600 dark:text-emerald-400">
+          <div className="flex items-center gap-2 mt-1 text-sm font-semibold">
+            <span className="text-[#707070] dark:text-[#9e9e9e] line-through">{selectedAnomaly.rawReading}</span>
+            <ArrowRight className="w-3.5 h-3.5 text-[#707070] dark:text-[#9e9e9e]" />
+            <span className="text-[#0066ff]">
               {selectedAnomaly.ukfCorrection !== null ? `${selectedAnomaly.ukfCorrection} (UKF)` : 'UNTOUCHED'}
             </span>
           </div>
-          <p className="text-[10px] font-mono text-[#71717A] dark:text-[#94A3B8] mt-2">
+          <p className="text-xs text-[#707070] dark:text-[#9e9e9e] mt-2">
             Raw store immutable (ID: {selectedAnomaly.id})
           </p>
         </div>
       </div>
 
-      <div className="mt-4 p-3 rounded-lg border border-[#E5E3DC] dark:border-[#232936] bg-white/60 dark:bg-[#151921]/60">
-        <span className="text-[10px] font-mono uppercase text-[#71717A] dark:text-[#94A3B8] font-bold block mb-1">
+      <div className="mt-4 p-4 rounded-[18px] border border-[#e0e0e0] dark:border-[#282e3a] bg-[#f3f3f3]/50 dark:bg-[#121417]">
+        <span className="text-xs text-[#707070] dark:text-[#9e9e9e] uppercase font-semibold block mb-2">
           Evidence Log Chain:
         </span>
         <div className="flex flex-wrap gap-2">
           {selectedAnomaly.evidenceChain.map((ev, i) => (
-            <span key={i} className="text-[11px] font-mono px-2 py-1 rounded bg-[#FAF8F5] dark:bg-[#0D0F12] border border-[#E5E3DC] dark:border-[#232936] text-[#18181B] dark:text-[#F8FAFC]">
+            <span key={i} className="text-xs px-3 py-1 rounded-full bg-white dark:bg-[#16191f] border border-[#e0e0e0] dark:border-[#282e3a] text-[#141414] dark:text-white font-medium">
               • {ev}
             </span>
           ))}
@@ -112,3 +112,5 @@ export const ExplainabilityDrawer: React.FC = () => {
     </div>
   );
 };
+
+export default ExplainabilityDrawer;

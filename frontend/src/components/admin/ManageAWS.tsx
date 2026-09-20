@@ -9,8 +9,7 @@ import {
   Save, 
   X,
 } from 'lucide-react';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
+import { API_BASE_URL } from '../../config/api';
 
 export const ManageAWS: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');

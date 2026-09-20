@@ -1,91 +1,143 @@
 import React from 'react';
-import { useAuth } from '../../context/AuthContext';
 import { useDashboard } from '../../context/DashboardContext';
 import type { DashboardTab } from '../../context/DashboardContext';
-import { ThemeToggle } from '../ThemeToggle';
-import {
-  Radio,
-  Layers,
-  MapPin,
-  Sparkles,
-  AlertTriangle,
-  Server,
-  LogOut,
-  UserCheck,
-} from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
+import { CloudLightning, Sun, Moon } from 'lucide-react';
+
+interface ProfileAvatarProps {
+  onClick: () => void;
+  isActive?: boolean;
+}
+
+export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ onClick, isActive }) => {
+  const { user } = useAuth();
+
+  // Extract up to 2 initials from username or email
+  const getInitials = (): string => {
+    if (!user) return 'OP';
+    if (user.username) {
+      const parts = user.username.trim().split(/[\s_-]+/);
+      if (parts.length >= 2 && parts[0] && parts[1]) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+      return user.username.slice(0, 2).toUpperCase();
+    }
+    if (user.email) {
+      return user.email.slice(0, 2).toUpperCase();
+    }
+    return 'OP';
+  };
+
+  const initials = getInitials();
+
+  return (
+    <button
+      onClick={onClick}
+      title={user ? `${user.username} (${user.role}) - View Profile` : 'User Profile'}
+      aria-label="User profile settings"
+      className={`relative w-9 h-9 rounded-full flex items-center justify-center font-semibold text-xs transition-all cursor-pointer select-none ${
+        isActive
+          ? 'ring-2 ring-[#0066ff] border-2 border-[#141414] dark:border-white bg-[#0066ff]/10 text-[#141414] dark:text-white'
+          : 'border border-[#e0e0e0] dark:border-[#282e3a] bg-[#f3f3f3] dark:bg-[#16191f] text-[#141414] dark:text-white hover:bg-[#e0e0e0] dark:hover:bg-[#282e3a]'
+      }`}
+    >
+      <span>{initials}</span>
+      {/* Online indicator dot - Mobbin electric blue accent */}
+      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#0066ff] border-2 border-white dark:border-[#0e1013]" />
+    </button>
+  );
+};
 
 export const Header: React.FC = () => {
-  const { user, logout } = useAuth();
-  const { activeTab, setActiveTab } = useDashboard();
+  const { activeTab, setActiveTab, anomalyFeed } = useDashboard();
+  const { theme, toggleTheme, isDark } = useTheme();
 
-  const navItems: { id: DashboardTab; label: string; icon: React.ElementType; adminOnly?: boolean }[] = [
-    { id: 'fleet', label: 'Fleet View', icon: Layers },
-    { id: 'station', label: 'Station View', icon: MapPin },
-    { id: 'explainability', label: 'Explainability', icon: Sparkles },
-    { id: 'alerts', label: 'Alerts', icon: AlertTriangle },
-    { id: 'manage_aws', label: 'Manage AWS', icon: Server, adminOnly: true },
+  // Active alerts count from anomaly feed
+  const alertCount = anomalyFeed.filter(
+    (a) => a.state === 'SENSOR_FAULT' || a.state === 'LOCAL_EXTREME' || a.state === 'SUSPICIOUS'
+  ).length;
+
+  const navItems: { id: DashboardTab; label: string; hasBadge?: boolean }[] = [
+    { id: 'fleet', label: 'Fleet View' },
+    { id: 'station', label: 'Station View' },
+    { id: 'explainability', label: 'Explainability' },
+    { id: 'alerts', label: 'Alerts', hasBadge: true },
   ];
 
   return (
-    <header className="w-full border-b border-[#E5E3DC] dark:border-[#232936] bg-[#FAF8F5] dark:bg-[#0D0F12] transition-colors duration-200">
-      <div className="max-w-[1520px] mx-auto px-6 h-14 flex items-center justify-between">
-        {/* Brand */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-7 h-7 rounded border border-[#E5E3DC] dark:border-[#232936] bg-white dark:bg-[#151921]">
-            <Radio className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+    <header className="w-full border-b border-[#e0e0e0] dark:border-[#282e3a] bg-white dark:bg-[#0e1013] transition-colors duration-200 sticky top-0 z-30 shadow-none">
+      <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        {/* Section 1: Brand & Subtitle (Left) */}
+        <div
+          onClick={() => setActiveTab('fleet')}
+          className="flex items-center gap-3 cursor-pointer shrink-0"
+        >
+          {/* iOS-style 30% squircle icon tile */}
+          <div className="flex items-center justify-center w-9 h-9 rounded-[11px] bg-[#141414] text-white dark:bg-white dark:text-[#141414] transition-colors shadow-xs">
+            <CloudLightning className="w-5 h-5" />
           </div>
-          <span className="font-mono text-xs font-bold tracking-[0.25em] uppercase text-[#18181B] dark:text-[#F8FAFC]">
-            SKYGUARD<span className="text-emerald-600 dark:text-emerald-400">.AI</span>
-          </span>
-          <span className="hidden lg:inline-block text-[10px] font-mono px-2 py-0.5 rounded border border-[#E5E3DC] dark:border-[#232936] text-[#71717A] dark:text-[#94A3B8]">
-            ROLE: {user?.role.toUpperCase()}
-          </span>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5 leading-none">
+              <span className="text-base font-semibold tracking-tight text-[#141414] dark:text-white">
+                SkyGuard
+              </span>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#707070] dark:text-[#9e9e9e]">
+                AI
+              </span>
+            </div>
+            <span className="text-[11px] text-[#707070] dark:text-[#9e9e9e] mt-0.5 hidden sm:inline font-normal">
+              Weather Station Anomaly Detection
+            </span>
+          </div>
         </div>
 
-        {/* Section Navigation Icons */}
-        <nav className="flex items-center gap-1.5 sm:gap-2">
+        {/* Section 2: Center Navigation - Mobbin nav-pill */}
+        <nav className="hidden md:flex items-center p-1 bg-[#f3f3f3] dark:bg-[#16191f] rounded-full border border-[#e0e0e0] dark:border-[#282e3a]">
           {navItems.map((item) => {
-            if (item.adminOnly && user?.role !== 'admin') return null;
-            const Icon = item.icon;
             const isActive = activeTab === item.id;
-
             return (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                title={item.label}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all ${
+                className={`px-4 py-1.5 rounded-full text-xs transition-all flex items-center gap-1.5 focus:outline-none cursor-pointer ${
                   isActive
-                    ? 'bg-[#18181B] dark:bg-[#F8FAFC] text-white dark:text-[#0D0F12] font-bold shadow-sm'
-                    : 'text-[#71717A] dark:text-[#94A3B8] hover:bg-neutral-200/60 dark:hover:bg-[#1C222C] hover:text-[#18181B] dark:hover:text-white'
+                    ? 'bg-white dark:bg-[#282e3a] text-[#141414] dark:text-white font-semibold shadow-xs'
+                    : 'text-[#707070] dark:text-[#9e9e9e] hover:text-[#141414] dark:hover:text-white font-medium'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">{item.label}</span>
+                <span>{item.label}</span>
+                {item.hasBadge && alertCount > 0 && (
+                  <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold text-white bg-[#0066ff] rounded-full min-w-[18px] h-[18px]">
+                    {alertCount}
+                  </span>
+                )}
               </button>
             );
           })}
         </nav>
 
-        {/* Right Section: Theme Toggle, User Badge, & Logout */}
-        <div className="flex items-center gap-3">
-          {/* Theme Toggle Button */}
-          <ThemeToggle />
-
-          <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-[#E5E3DC] dark:border-[#232936]">
-            <UserCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span className="text-[11px] font-mono text-[#18181B] dark:text-[#F8FAFC] font-medium">
-              {user?.username}
-            </span>
-          </div>
-
+        {/* Section 3: Header Actions & Profile Avatar (Right) */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          {/* Quick theme icon toggle - Mobbin pill button */}
           <button
-            onClick={logout}
-            title="Logout"
-            className="p-1.5 rounded-lg border border-[#E5E3DC] dark:border-[#232936] text-[#71717A] dark:text-[#94A3B8] hover:text-rose-500 dark:hover:text-rose-400 hover:border-rose-300 dark:hover:border-rose-900 transition-colors"
+            onClick={toggleTheme}
+            aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+            title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+            className="w-9 h-9 rounded-full border border-[#e0e0e0] dark:border-[#282e3a] bg-[#f3f3f3] dark:bg-[#16191f] text-[#141414] dark:text-white flex items-center justify-center hover:bg-[#e0e0e0] dark:hover:bg-[#282e3a] transition-colors cursor-pointer"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            {isDark ? (
+              <Sun className="w-4 h-4 text-[#0066ff]" />
+            ) : (
+              <Moon className="w-4 h-4 text-[#141414]" />
+            )}
           </button>
+
+          {/* Profile Avatar Button -> Navigates to Profile */}
+          <ProfileAvatar
+            onClick={() => setActiveTab('profile')}
+            isActive={activeTab === 'profile'}
+          />
         </div>
       </div>
     </header>

@@ -1,33 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Sun, Moon } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTheme } from "../context/ThemeContext";
 
 export const ThemeToggle: React.FC = () => {
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      return (
-        localStorage.getItem("skyguard-theme") === "dark" ||
-        (!localStorage.getItem("skyguard-theme") &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches)
-      );
-    }
-    return false;
-  });
+  const { isDark, toggleTheme } = useTheme();
 
-  useEffect(() => {
-    const root = document.documentElement;
-    if (isDark) {
-      root.classList.add("dark");
-      localStorage.setItem("skyguard-theme", "dark");
-    } else {
-      root.classList.remove("dark");
-      localStorage.setItem("skyguard-theme", "light");
-    }
-  }, [isDark]);
 
   return (
     <button
-      onClick={() => setIsDark(!isDark)}
+      onClick={toggleTheme}
       aria-label="Toggle theme"
       className="relative flex items-center justify-between w-14 h-7 p-1 rounded-full border border-borderMuted-light dark:border-borderMuted-dark bg-paper-light dark:bg-paper-dark transition-colors duration-300"
     >

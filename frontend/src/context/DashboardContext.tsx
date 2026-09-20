@@ -1,9 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { StationGeoNode, AnomalyRecord, FleetRegistryItem, StationStatus } from '../types/dashboard';
+import type {
+  StationGeoNode,
+  AnomalyRecord,
+  FleetRegistryItem,
+  FleetKPISummary,
+  SpatialConsensusStatus,
+  AnomalyFeedItem,
+  InspectionBundle,
+} from '../types/dashboard';
+import { skyguardApi } from '../services/skyguardApi';
 
-export type DashboardTab = 'fleet' | 'station' | 'explainability' | 'alerts' | 'manage_aws';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
+export type DashboardTab = 'fleet' | 'station' | 'explainability' | 'alerts' | 'manage_aws' | 'profile';
 
 interface DashboardContextType {
   activeTab: DashboardTab;
@@ -20,6 +27,18 @@ interface DashboardContextType {
   addStation: (station: StationGeoNode) => void;
   triggerTopologyRebuild: () => Promise<void>;
   isRebuildingTopology: boolean;
+
+  // Live Telemetry & Consensus State
+  kpiSummary: FleetKPISummary | null;
+  spatialConsensus: SpatialConsensusStatus | null;
+  anomalyFeed: AnomalyFeedItem[];
+  selectedInspection: InspectionBundle | null;
+  setSelectedInspection: (bundle: InspectionBundle | null) => void;
+  fetchInspectionForStation: (stationId: string) => Promise<void>;
+  isLive: boolean;
+  setIsLive: (live: boolean) => void;
+  refreshAll: () => Promise<void>;
+  telemetryError: string | null;
 }
 
 const DashboardContext = createContext<DashboardContextType | null>(null);
@@ -34,89 +53,96 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isLoadingStations, setIsLoadingStations] = useState<boolean>(true);
   const [isRebuildingTopology, setIsRebuildingTopology] = useState<boolean>(false);
 
-  // Helper: Projects (lat, lng) to the 0-400 SVG India projection viewbox
-  const projectToSvg = (lat: number, lng: number): { x: number; y: number } => {
-    // India bounding box roughly lat: 8°N - 38°N, lng: 68°E - 98°E
-    const x = Math.round(((lng - 68) / (98 - 68)) * 260 + 70);
-    const y = Math.round(((38 - lat) / (38 - 8)) * 280 + 50);
-    return {
-      x: Math.max(50, Math.min(350, x)),
-      y: Math.max(50, Math.min(350, y)),
-    };
-  };
+  // Real-time Telemetry state
+  const [kpiSummary, setKpiSummary] = useState<FleetKPISummary | null>(null);
+  const [spatialConsensus, setSpatialConsensus] = useState<SpatialConsensusStatus | null>(null);
+  const [anomalyFeed, setAnomalyFeed] = useState<AnomalyFeedItem[]>([]);
+  const [selectedInspection, setSelectedInspection] = useState<InspectionBundle | null>(null);
+  const [isLive, setIsLive] = useState<boolean>(true);
+  const [telemetryError, setTelemetryError] = useState<string | null>(null);
 
-  const fetchStations = useCallback(async () => {
+  const fetchInspectionForStation = useCallback(async (stationId: string) => {
     try {
-      setIsLoadingStations(true);
-      const token = localStorage.getItem('sg_access_token');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`${API_BASE_URL}/edge/stations?limit=500`, {
-        headers,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch stations: ${response.statusText}`);
-      }
-
-      const rawData = await response.json();
-
-      // Transform backend records to Frontend StationGeoNodes
-      const mappedStations: StationGeoNode[] = rawData.map((item: any) => {
-        const { x, y } = projectToSvg(item.latitude, item.longitude);
-        return {
-          id: item.station_id,
-          name: item.name,
-          status: (item.is_active ? 'HEALTHY' : 'UNKNOWN_DUAL') as StationStatus,
-          lat: item.latitude,
-          lng: item.longitude,
-          x,
-          y,
-          elevation: item.elevation,
-          rh: 60.0,
-          temp: 28.0,
-          dewPoint: 19.5,
-          pressure: 1010.0,
-          neighbors: [],
-        };
-      });
-
-      // Transform backend records to Fleet Registry Items
-      const mappedRegistry: FleetRegistryItem[] = rawData.map((item: any) => ({
-        stationId: item.station_id,
-        wsi: item.wsi,
-        wsiStatus: item.wsi_status,
-        terrain: item.terrain,
-        climateRegion: item.climate_region,
-        powerSegment: item.power_segment,
-        backhaulId: item.backhaul_id,
-        firmwareVersion: item.firmware_version,
-        tinyMlVersion: 'tinyml-v3.1-int8',
-        dutyCycle: '3-Cycle (15m)',
-        mtlsStatus: 'ACTIVE',
-      }));
-
-      setStations(mappedStations);
-      setFleetRegistry(mappedRegistry);
-
-      if (mappedStations.length > 0 && !selectedStation) {
-        setSelectedStation(mappedStations[0]);
-      }
+      const bundle = await skyguardApi.getInspection(stationId);
+      setSelectedInspection(bundle);
     } catch (err) {
-      console.error('Error fetching fleet stations from backend:', err);
+      console.error(`Error fetching inspection for ${stationId}:`, err);
+    }
+  }, []);
+
+  const refreshAll = useCallback(async () => {
+    try {
+      setTelemetryError(null);
+
+      // Fetch telemetry resources from centralized service
+      const [stationNodes, summary, consensus, feed] = await Promise.all([
+        skyguardApi.getStations(),
+        skyguardApi.getFleetSummary(),
+        skyguardApi.getSpatialConsensus(),
+        skyguardApi.getAnomalies(),
+      ]);
+
+      setStations(stationNodes);
+      setKpiSummary(summary);
+      setSpatialConsensus(consensus);
+      setAnomalyFeed(feed);
+
+      // Select first station if none selected yet
+      if (!selectedStation && stationNodes.length > 0) {
+        setSelectedStation(stationNodes[0]);
+      }
+
+      // Automatically select default inspection if none selected
+      if (!selectedInspection) {
+        if (feed.length > 0 && feed[0].inspection) {
+          setSelectedInspection(feed[0].inspection);
+        } else if (stationNodes.length > 0) {
+          fetchInspectionForStation(stationNodes[0].id);
+        }
+      }
+
+      // Populate legacy anomaly records for backward compatibility
+      const legacyRecords: AnomalyRecord[] = feed.map((item) => ({
+        id: item.id,
+        stationId: item.stationId,
+        timestamp: 'Just now',
+        state: item.state as any,
+        faultAttribution: item.faultAttribution,
+        evidenceChain: item.evidenceChain,
+        calibratedConfidence: item.confidence,
+        uncertaintyBand: parseFloat(item.uncertainty.replace(/[^0-9.]/g, '')) || 0.02,
+        sonntagGatePassed: item.state !== 'SENSOR_FAULT',
+        tDew: 31.2,
+        tRaw: 29.1,
+        tinyMlResidual: 3.41,
+        kdTreeConsensus: 0.88,
+        rawReading: 99.8,
+        ukfCorrection: item.inspection?.ukfCorrection || null,
+      }));
+      setAnomalies(legacyRecords);
+    } catch (err: any) {
+      console.error('Error refreshing telemetry dashboard:', err);
+      setTelemetryError(err.message || 'Unable to load fleet telemetry.');
     } finally {
       setIsLoadingStations(false);
     }
-  }, [selectedStation]);
+  }, [selectedStation, selectedInspection, fetchInspectionForStation]);
 
+  // Initial load
   useEffect(() => {
-    fetchStations();
-  }, [fetchStations]);
+    refreshAll();
+  }, [refreshAll]);
+
+  // Real-time 5-second polling loop when live is active
+  useEffect(() => {
+    if (!isLive) return;
+
+    const intervalId = setInterval(() => {
+      refreshAll();
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [isLive, refreshAll]);
 
   const addStation = (station: StationGeoNode) => {
     setStations((prev) => [station, ...prev]);
@@ -126,22 +152,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const triggerTopologyRebuild = async () => {
     setIsRebuildingTopology(true);
     try {
-      const token = localStorage.getItem('sg_access_token');
-      await fetch(`${API_BASE_URL}/edge/simulator/start`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          sample_interval_seconds: 5.0,
-          batch_size: 3,
-          broker_host: 'localhost',
-          broker_port: 1883,
-        }),
-      });
-    } catch (err) {
-      console.error('Topology trigger error:', err);
+      await refreshAll();
     } finally {
       setIsRebuildingTopology(false);
     }
@@ -160,10 +171,20 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setSelectedAnomaly,
         fleetRegistry,
         isLoadingStations,
-        refreshStations: fetchStations,
+        refreshStations: refreshAll,
         addStation,
         triggerTopologyRebuild,
         isRebuildingTopology,
+        kpiSummary,
+        spatialConsensus,
+        anomalyFeed,
+        selectedInspection,
+        setSelectedInspection,
+        fetchInspectionForStation,
+        isLive,
+        setIsLive,
+        refreshAll,
+        telemetryError,
       }}
     >
       {children}

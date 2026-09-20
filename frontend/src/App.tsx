@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DashboardProvider, useDashboard } from './context/DashboardContext';
 
-import { AnnouncementBar } from './components/layout/AnnouncementBar';
+import { ThemeProvider } from './context/ThemeContext';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { PipelineFlow } from './components/PipelineFlow';
@@ -17,22 +17,22 @@ import { IndiaSpatialMap } from './components/operator/IndiaSpatialMap';
 import { AnomalyTable } from './components/operator/AnomalyTable';
 import { ExplainabilityDrawer } from './components/shared/ExplainabilityDrawer';
 import { ManageAWS } from './components/admin/ManageAWS';
+import { ProfileScreen } from './components/profile/ProfileScreen';
 
 const DashboardRouter: React.FC = () => {
   const { user } = useAuth();
   const { activeTab } = useDashboard();
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] dark:bg-[#0D0F12] text-[#18181B] dark:text-[#F8FAFC] transition-colors duration-200">
-      <AnnouncementBar />
+    <div className="min-h-screen bg-canvas dark:bg-[#0e1013] text-ink dark:text-[#f5f5f5] flex flex-col transition-colors duration-200">
       <Header />
-      <main className="max-w-[1520px] mx-auto px-6 py-8">
+      <main className="flex-1 w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         {/* Fleet View: Exactly identical for both Admin and Operator */}
         {activeTab === 'fleet' && <OperatorDashboard />}
 
         {activeTab === 'station' && (
           <div className="space-y-6">
-            <h1 className="font-serif text-2xl font-bold text-[#18181B] dark:text-[#F8FAFC]">
+            <h1 className="text-[28px] font-medium text-ink dark:text-cream">
               Geospatial Station Inspector
             </h1>
             <IndiaSpatialMap />
@@ -41,7 +41,7 @@ const DashboardRouter: React.FC = () => {
 
         {activeTab === 'explainability' && (
           <div className="space-y-6">
-            <h1 className="font-serif text-2xl font-bold text-[#18181B] dark:text-[#F8FAFC]">
+            <h1 className="text-[28px] font-medium text-ink dark:text-cream">
               Evidence &amp; Decision Inspector
             </h1>
             <ExplainabilityDrawer />
@@ -51,7 +51,7 @@ const DashboardRouter: React.FC = () => {
 
         {activeTab === 'alerts' && (
           <div className="space-y-6">
-            <h1 className="font-serif text-2xl font-bold text-[#18181B] dark:text-[#F8FAFC]">
+            <h1 className="text-[28px] font-medium text-ink dark:text-cream">
               Active Alerts &amp; Extreme Events
             </h1>
             <AnomalyTable />
@@ -60,6 +60,9 @@ const DashboardRouter: React.FC = () => {
 
         {/* Exclusive Manage AWS Section for Admin */}
         {activeTab === 'manage_aws' && user?.role === 'admin' && <ManageAWS />}
+
+        {/* User Profile & Settings Screen */}
+        {activeTab === 'profile' && <ProfileScreen />}
       </main>
     </div>
   );
@@ -77,8 +80,8 @@ const RootApp: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAF8F5] dark:bg-[#0D0F12]">
-        <div className="font-mono text-xs text-neutral-500 tracking-widest uppercase animate-pulse">
+      <div className="min-h-screen flex items-center justify-center bg-cream">
+        <div className="text-sm text-graphite tracking-widest uppercase animate-pulse font-medium">
           Validating Security Session...
         </div>
       </div>
@@ -94,8 +97,7 @@ const RootApp: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark font-sans transition-colors duration-200">
-      <AnnouncementBar />
+    <div className="min-h-screen bg-cream text-ink font-sans transition-colors duration-200">
       <Navbar onOpenAuth={(mode) => setAuthModalState({ isOpen: true, mode })} />
 
       <main>
@@ -118,8 +120,10 @@ const RootApp: React.FC = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <RootApp />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <RootApp />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
