@@ -1,20 +1,33 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.auth.routes import router as auth_router
-from app.config.database import Base, engine
+from app.config.database import Base, engine , setup_timescaledb
 from app.config.logging import logger
 from app.config.settings import settings
 from fastapi.middleware import cors
 from app.edge_simulator.router import router as edge_router
+from app.ingestion_pipeline.router import router as ingest_router
+from app.ingestion_pipeline.consumer import pipeline_worker
 from sqlalchemy import text
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Initializing database connection...")
+    
     async with engine.begin() as conn:
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb;"))
+
+    async with engine.begin() as conn:
+        await setup_timescaledb()
         await conn.run_sync(Base.metadata.create_all)
+        
+    try:
+        await pipeline_worker.start()
+    except Exception as e:
+        logger.warning(f"Kafka ingestion worker skipped due to network/port restriction: {e}")
+
     logger.info("Database schema synchronized.")
     yield
     logger.info("Disposing engine connections...")
@@ -38,6 +51,7 @@ app.add_middleware(
 # Register Sub-Routers
 app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
 app.include_router(edge_router, prefix=settings.API_V1_PREFIX)
+app.include_router(ingest_router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/health", tags=["Health"])
