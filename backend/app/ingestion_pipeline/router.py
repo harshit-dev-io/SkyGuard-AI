@@ -231,9 +231,18 @@ async def replay_dead_letter(
             detail="Payload still fails validation or is already present in dedup index.",
         )
 
-    # Flag record as resolved
     await db.execute(
+        update(DeadLetterObservationModel)
+        .where(DeadLetterObservationModel.id == dlq_id)
+        .values(replayed=True)
+    )
+    await db.commit()
 
+    return IngestionConfirmation(
+        status="replayed_and_persisted",
+        observation_id=obs_id,
+        station_id="REPLAYED_NODE",
+        sequence=0,
         data_source=DataSource.HTTP_FALLBACK,
         clock_suspect=False,
         late_arrival=True,
