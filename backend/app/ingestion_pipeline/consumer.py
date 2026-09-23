@@ -5,6 +5,7 @@ import logging
 from typing import Optional
 import uuid
 import aiomqtt
+from aiokafka import AIOKafkaProducer
 
 from app.config.database import async_session_factory
 from app.config.settings import settings
@@ -19,9 +20,9 @@ logger = logging.getLogger("skyguard.ingest.worker")
 
 
 class IngestionPipelineWorker:
-
     def __init__(self):
         self.client: Optional[aiomqtt.Client] = None
+        self.kafka_producer: Optional[AIOKafkaProducer] = None
         self.is_running: bool = False
         self._worker_task: Optional[asyncio.Task] = None
         self.topic = "telemetry/raw/#"
@@ -29,9 +30,17 @@ class IngestionPipelineWorker:
     async def start(self):
         try:
             await redis_buffer.connect()
+
+            # Initialize Kafka Producer for observations.raw
+            self.kafka_producer = AIOKafkaProducer(
+                bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,
+                client_id=f"{getattr(settings, 'KAFKA_CLIENT_ID', 'skyguard')}-raw-producer",
+            )
+            await self.kafka_producer.start()
+
             self.is_running = True
             self._worker_task = asyncio.create_task(self._consume_loop())
-            logger.info("Ingestion pipeline worker started (Listening directly to EMQX MQTT).")
+            logger.info("Ingestion pipeline worker started (Listening to EMQX MQTT, forwarding to Kafka).")
         except Exception as err:
             logger.error(f"Failed to initialize Ingestion Worker: {err}", exc_info=True)
             raise err
@@ -40,11 +49,12 @@ class IngestionPipelineWorker:
         self.is_running = False
         if self._worker_task:
             self._worker_task.cancel()
+        if self.kafka_producer:
+            await self.kafka_producer.stop()
         await redis_buffer.disconnect()
         logger.info("Ingestion pipeline worker stopped.")
 
     async def _consume_loop(self):
-        """Continuously listen to EMQX MQTT broker with auto-reconnect."""
         while self.is_running:
             try:
                 async with aiomqtt.Client("localhost", port=1883) as client:
@@ -55,7 +65,7 @@ class IngestionPipelineWorker:
                     async for message in client.messages:
                         if not self.is_running:
                             break
-                        
+
                         await self.process_raw_message(
                             message_bytes=message.payload,
                             source_ip="EMQX_MQTT_DIRECT",
@@ -81,7 +91,7 @@ class IngestionPipelineWorker:
         try:
             parsed_json = json.loads(raw_text)
             telemetry = EdgeTelemetryPayload.model_validate(parsed_json)
-        except (json.JSONDecodeError, Exception) as validation_err:
+        except Exception as validation_err:
             logger.warning(f"Schema violation detected. Quarantining: {validation_err}")
             await self.quarantine_dead_letter(
                 raw_payload=raw_text,
@@ -125,7 +135,7 @@ class IngestionPipelineWorker:
                         f"({prev_seq} -> {telemetry.sequence}) but timestamp regressed by {delta_seconds}s"
                     )
 
-        # 4. De-jitter Buffering (Bounded 30-second window)
+        # 4. De-jitter Buffering (30s window)
         late_arrival = await redis_buffer.stage_in_dejitter(
             station_id=telemetry.station_id,
             sequence=telemetry.sequence,
@@ -133,7 +143,7 @@ class IngestionPipelineWorker:
             arrival_epoch=arrival_epoch,
         )
 
-        # 5. Persist Immutable Raw Record to TimescaleDB
+        # 5. Persist Immutable Raw Record to TimescaleDB (Write-Before-Analysis)
         obs_id = uuid.uuid4()
         async with async_session_factory() as session:
             async with session.begin():
@@ -151,8 +161,18 @@ class IngestionPipelineWorker:
                 )
                 session.add(raw_entry)
 
+        # 6. CRITICAL FIX: Forward to Kafka 'observations.raw' for Flink
+        if self.kafka_producer:
+            # Partition Key MUST be station_id for deterministic ordering
+            kafka_payload = telemetry.model_dump_json().encode("utf-8")
+            await self.kafka_producer.send_and_wait(
+                settings.KAFKA_TOPIC_RAW_OBSERVATIONS,
+                key=telemetry.station_id.encode("utf-8"),
+                value=kafka_payload,
+            )
+
         logger.debug(
-            f"Stored raw hypertable record: {telemetry.station_id} | "
+            f"Stored raw record and forwarded to Kafka: {telemetry.station_id} | "
             f"seq={telemetry.sequence} | late={late_arrival} | suspect={clock_suspect}"
         )
         return obs_id
