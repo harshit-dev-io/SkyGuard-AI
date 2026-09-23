@@ -24,7 +24,21 @@ class Settings(BaseSettings):
     KAFKA_SASL_MECHANISM: str = "PLAIN"
     KAFKA_SASL_USERNAME: str 
     KAFKA_SASL_PASSWORD: str 
-    
+    KAFKA_GROUP_ID: str = "skyguard-evidence-engines-flock"
+
+    TOPIC_EVIDENCE_TEMPORAL: str = "evidence.temporal"
+    TOPIC_EVIDENCE_SPATIAL: str = "evidence.spatial"
+    TOPIC_EVIDENCE_EVENT: str = "evidence.event"
+    TOPIC_EVIDENCE_HEALTH: str = "evidence.health"
+
+    FLINK_PARALLELISM: int = 4
+    CHECKPOINT_INTERVAL_MS: int = 15000
+    CHECKPOINT_TIMEOUT_MS: int = 60000
+    MIN_PAUSE_BETWEEN_CHECKPOINTS_MS: int = 5000
+
+    EVENT_CORROBORATION_WINDOW_SECONDS: int = 300  
+    HEALTH_STREAM_BLOCK_SIZE: int = 60              
+    HEALTH_MAX_BUFFERED_BLOCKS: int = 48
     
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
