@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pathlib import Path
 
 
 class Settings(BaseSettings):
@@ -25,11 +26,27 @@ class Settings(BaseSettings):
     KAFKA_SASL_USERNAME: str 
     KAFKA_SASL_PASSWORD: str 
     KAFKA_GROUP_ID: str = "skyguard-evidence-engines-flock"
+    
 
     TOPIC_EVIDENCE_TEMPORAL: str = "evidence.temporal"
     TOPIC_EVIDENCE_SPATIAL: str = "evidence.spatial"
     TOPIC_EVIDENCE_EVENT: str = "evidence.event"
     TOPIC_EVIDENCE_HEALTH: str = "evidence.health"
+
+    KAFKA_FUSION_GROUP_ID: str = "skyguard-fusion-classifier-group"
+    TOPIC_FUSED_BUNDLES: str = "bundles.fused"
+    TOPIC_CLASSIFICATION_OUTPUT: str = "classifications.state_fault"
+
+    FUSION_JOIN_TIMEOUT_SECONDS: float = 2.0  
+    EVIDENCE_DEGRADE_ALLOWED: bool = True
+
+    ACTIVE_LEARNING_UNCERTAINTY_THRESHOLD: float = 0.70  
+    SPARSE_CLASS_SAMPLE_THRESHOLD: int = 50
+    CALIBRATION_BINS: int = 10
+
+    MODEL_ARTIFACTS_DIR: str = str(
+        Path(__file__).resolve().parent.parent / "fusion_engine" / "classifier" / "artifacts"
+    )
 
     FLINK_PARALLELISM: int = 4
     CHECKPOINT_INTERVAL_MS: int = 15000
