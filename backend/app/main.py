@@ -8,7 +8,9 @@ from fastapi.middleware import cors
 from app.edge_simulator.router import router as edge_router
 from app.ingestion_pipeline.router import router as ingest_router
 from app.ingestion_pipeline.consumer import pipeline_worker
+from app.fusion_engine.router import router as fusion_router
 from sqlalchemy import text
+from app.fusion_engine.consumer import fused_consumer_daemon
 
 
 @asynccontextmanager
@@ -27,6 +29,11 @@ async def lifespan(app: FastAPI):
         await pipeline_worker.start()
     except Exception as e:
         logger.warning(f"Kafka ingestion worker skipped due to network/port restriction: {e}")
+
+    try:
+        await fused_consumer_daemon.start()
+    except Exception as e:
+        logger.warning(f"Fused evidence consumer skipped due to network/port restriction: {e}")
 
     logger.info("Database schema synchronized.")
     yield
@@ -52,6 +59,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
 app.include_router(edge_router, prefix=settings.API_V1_PREFIX)
 app.include_router(ingest_router, prefix=settings.API_V1_PREFIX)
+app.include_router(fusion_router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/health", tags=["Health"])
