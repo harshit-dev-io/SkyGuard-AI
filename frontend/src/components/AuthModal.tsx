@@ -68,53 +68,55 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, initialMode, onClo
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-bark/60 dark:bg-black/75 backdrop-blur-sm"
           />
 
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 10 }}
-            className="relative w-full max-w-md bg-surface-light dark:bg-surface-dark border border-borderMuted-light dark:border-borderMuted-dark rounded-2xl shadow-2xl p-8 z-10"
+            className="relative w-full max-w-md bg-sheetWhite dark:bg-sheetWhite-dark border border-sage-mist dark:border-sage-dark rounded-cards p-8 z-10"
           >
             <button
               onClick={onClose}
-              className="absolute top-5 right-5 text-neutral-400 hover:text-ink-light dark:hover:text-ink-dark transition-colors"
+              className="absolute top-5 right-5 text-slate-muted hover:text-bark dark:hover:text-white transition-colors"
+              aria-label="Close dialog"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="flex border-b border-borderMuted-light dark:border-borderMuted-dark pb-3 mb-6">
+            {/* Mode Tabs */}
+            <div className="flex border-b border-sage-mist/60 dark:border-sage-dark pb-3 mb-6">
               <button
                 onClick={() => { setMode('login'); setError(null); }}
-                className={`text-xs font-mono uppercase tracking-widest pb-2 mr-6 border-b-2 transition-all cursor-pointer ${
+                className={`text-[13px] font-bold uppercase tracking-[0.07em] pb-2 mr-6 border-b-2 transition-all cursor-pointer ${
                   mode === 'login'
-                    ? 'border-[#141414] dark:border-white text-[#141414] dark:text-white font-bold'
-                    : 'border-transparent text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'
+                    ? 'border-canopy dark:border-mint-pulse text-canopy dark:text-mint-pulse'
+                    : 'border-transparent text-slate-muted hover:text-bark dark:hover:text-white'
                 }`}
               >
-                Log In
+                Sign In
               </button>
               <button
                 onClick={() => { setMode('signup'); setError(null); }}
-                className={`text-xs font-mono uppercase tracking-widest pb-2 border-b-2 transition-all cursor-pointer ${
+                className={`text-[13px] font-bold uppercase tracking-[0.07em] pb-2 border-b-2 transition-all cursor-pointer ${
                   mode === 'signup'
-                    ? 'border-[#141414] dark:border-white text-[#141414] dark:text-white font-bold'
-                    : 'border-transparent text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'
+                    ? 'border-canopy dark:border-mint-pulse text-canopy dark:text-mint-pulse'
+                    : 'border-transparent text-slate-muted hover:text-bark dark:hover:text-white'
                 }`}
               >
-                Sign Up
+                Register
               </button>
             </div>
 
             {error && (
-              <div className="mb-4 p-3 rounded bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 flex items-center gap-2 text-rose-600 dark:text-rose-400 text-xs">
+              <div className="mb-4 p-3 rounded-inputs bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 flex items-center gap-2 text-rose-600 dark:text-rose-400 text-xs">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -123,40 +125,46 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, initialMode, onClo
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === 'signup' && (
                 <div>
-                  <label className="block text-[11px] font-mono uppercase text-neutral-500 mb-1">Username</label>
+                  <label className="block text-[12px] font-bold uppercase tracking-[0.07em] text-slate dark:text-slate-dark mb-1">
+                    Username
+                  </label>
                   <div className="relative">
-                    <User className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <User className="w-4 h-4 text-slate-muted absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       required
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="operator_12"
-                      className="w-full pl-9 pr-3 py-2 bg-paper-light dark:bg-paper-dark border border-borderMuted-light dark:border-borderMuted-dark text-ink-light dark:text-ink-dark placeholder:text-neutral-400 dark:placeholder:text-neutral-500 rounded text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      className="w-full pl-9 pr-3 py-2.5 bg-creamPaper dark:bg-canopy-dark/30 border border-pale-sage dark:border-sage-dark text-bark dark:text-white placeholder:text-slate-muted rounded-inputs text-xs focus:outline-none focus:border-canopy dark:focus:border-mint-pulse"
                     />
                   </div>
                 </div>
               )}
 
               <div>
-                <label className="block text-[11px] font-mono uppercase text-neutral-500 mb-1">Email</label>
+                <label className="block text-[12px] font-bold uppercase tracking-[0.07em] text-slate dark:text-slate-dark mb-1">
+                  Email
+                </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-4 h-4 text-slate-muted absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@skyguard.in"
-                    className="w-full pl-9 pr-3 py-2 bg-paper-light dark:bg-paper-dark border border-borderMuted-light dark:border-borderMuted-dark text-ink-light dark:text-ink-dark placeholder:text-neutral-400 dark:placeholder:text-neutral-500 rounded text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full pl-9 pr-3 py-2.5 bg-creamPaper dark:bg-canopy-dark/30 border border-pale-sage dark:border-sage-dark text-bark dark:text-white placeholder:text-slate-muted rounded-inputs text-xs focus:outline-none focus:border-canopy dark:focus:border-mint-pulse"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-mono uppercase text-neutral-500 mb-1">Password</label>
+                <label className="block text-[12px] font-bold uppercase tracking-[0.07em] text-slate dark:text-slate-dark mb-1">
+                  Password
+                </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Lock className="w-4 h-4 text-slate-muted absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="password"
                     required
@@ -164,23 +172,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, initialMode, onClo
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-9 pr-3 py-2 bg-paper-light dark:bg-paper-dark border border-borderMuted-light dark:border-borderMuted-dark text-ink-light dark:text-ink-dark placeholder:text-neutral-400 dark:placeholder:text-neutral-500 rounded text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full pl-9 pr-3 py-2.5 bg-creamPaper dark:bg-canopy-dark/30 border border-pale-sage dark:border-sage-dark text-bark dark:text-white placeholder:text-slate-muted rounded-inputs text-xs focus:outline-none focus:border-canopy dark:focus:border-mint-pulse"
                   />
                 </div>
               </div>
 
               {mode === 'signup' && (
                 <div>
-                  <label className="block text-[11px] font-mono uppercase text-neutral-500 mb-1">System Role</label>
+                  <label className="block text-[12px] font-bold uppercase tracking-[0.07em] text-slate dark:text-slate-dark mb-1">
+                    System Role
+                  </label>
                   <div className="relative">
-                    <Shield className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Shield className="w-4 h-4 text-slate-muted absolute left-3 top-1/2 -translate-y-1/2" />
                     <select
                       value={role}
                       onChange={(e) => setRole(e.target.value as 'operator' | 'admin')}
-                      className="w-full pl-9 pr-3 py-2 bg-paper-light dark:bg-paper-dark border border-borderMuted-light dark:border-borderMuted-dark text-ink-light dark:text-ink-dark rounded text-xs appearance-none focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      className="w-full pl-9 pr-3 py-2.5 bg-creamPaper dark:bg-canopy-dark/30 border border-pale-sage dark:border-sage-dark text-bark dark:text-white rounded-inputs text-xs appearance-none focus:outline-none focus:border-canopy dark:focus:border-mint-pulse"
                     >
-                      <option value="operator" className="bg-white dark:bg-[#141820] text-black dark:text-white">Field Operator</option>
-                      <option value="admin" className="bg-white dark:bg-[#141820] text-black dark:text-white">System Administrator</option>
+                      <option value="operator" className="bg-sheetWhite dark:bg-sheetWhite-dark text-bark dark:text-white">Field Operator</option>
+                      <option value="admin" className="bg-sheetWhite dark:bg-sheetWhite-dark text-bark dark:text-white">System Administrator</option>
                     </select>
                   </div>
                 </div>
@@ -189,9 +199,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, initialMode, onClo
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 mt-2 bg-[#141414] dark:bg-white text-white dark:text-[#141414] hover:bg-[#262626] dark:hover:bg-[#e0e0e0] font-mono text-xs font-bold uppercase tracking-widest rounded transition-all disabled:opacity-50 cursor-pointer shadow-sm"
+                className="w-full py-3 mt-3 bg-canopy dark:bg-mint-pulse text-white dark:text-bark hover:bg-canopy-dark dark:hover:bg-mint-hover text-[14px] font-medium rounded-buttons transition-all disabled:opacity-50 cursor-pointer shadow-none"
               >
-                {loading ? 'Processing...' : mode === 'login' ? 'Sign In' : 'Register Profile'}
+                {loading ? 'Processing...' : mode === 'login' ? 'Sign In to Observatory' : 'Register Profile'}
               </button>
             </form>
           </motion.div>

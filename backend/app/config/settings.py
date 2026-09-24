@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     PBKDF2_ITERATIONS: int = 600_000
     PBKDF2_SALT_SIZE: int = 16
 
-    DATABASE_URL: str 
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/skyguard"
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -15,21 +15,21 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   badge,
 }) => {
   return (
-    <div className="p-5 rounded-[24px] border border-[#e0e0e0] dark:border-[#282e3a] bg-white dark:bg-[#16191f] transition-colors">
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs text-[#707070] dark:text-[#9e9e9e] uppercase font-semibold">
+    <div className="p-6 rounded-cards border border-sage-mist dark:border-sage-dark bg-sheetWhite dark:bg-sheetWhite-dark transition-colors">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs text-slate dark:text-slate-dark uppercase font-semibold">
           {label}
         </span>
         {badge && (
-          <span className="text-[10px] px-2.5 py-0.5 rounded-full border border-[#0066ff]/30 bg-[#0066ff]/10 text-[#0066ff] font-bold">
+          <span className="text-[10px] px-2.5 py-0.5 rounded-full border border-canopy/20 dark:border-mint-pulse/30 bg-canopy/10 dark:bg-mint-pulse/20 text-canopy dark:text-mint-pulse font-bold">
             {badge}
           </span>
         )}
       </div>
-      <div className="text-2xl font-bold text-[#141414] dark:text-white">
+      <div className="text-2xl font-bold text-bark dark:text-bark-dark">
         {value}
       </div>
-      <div className="text-xs text-[#707070] dark:text-[#9e9e9e] mt-1 font-normal">
+      <div className="text-xs text-slate dark:text-slate-dark mt-1 font-normal">
         {subtext}
       </div>
     </div>
