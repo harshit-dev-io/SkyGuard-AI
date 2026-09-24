@@ -13,26 +13,26 @@ export const OperatorDashboard: React.FC = () => {
     <div className="space-y-6 pb-8">
       {/* Page Title & Subtitle */}
       <div>
-        <h1 className="text-2xl sm:text-[28px] font-bold tracking-tight text-[#141414] dark:text-white">
+        <h1 className="text-2xl sm:text-[28px] font-bold tracking-tight text-bark dark:text-bark-dark">
           Fleet Telemetry &amp; Anomaly Stream
         </h1>
-        <p className="text-sm text-[#707070] dark:text-[#9e9e9e] mt-1 font-normal">
+        <p className="text-sm text-slate dark:text-slate-dark mt-1 font-normal">
           Real-time inference, spatial consensus &amp; thermodynamic validation across India AWS network
         </p>
       </div>
 
-      {/* Error Alert with Retry — Mobbin card style */}
+      {/* Error Alert with Retry */}
       {telemetryError && (
-        <div className="p-4 rounded-[24px] border border-[#e0e0e0] dark:border-[#282e3a] bg-white dark:bg-[#16191f] flex items-center justify-between gap-4">
+        <div className="p-4 rounded-cards border border-sage-mist dark:border-sage-dark bg-sheetWhite dark:bg-sheetWhite-dark flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <AlertCircle className="w-4 h-4 text-[#0066ff] shrink-0" />
-            <span className="text-xs sm:text-sm text-[#707070] dark:text-[#9e9e9e]">
+            <AlertCircle className="w-4 h-4 text-canopy dark:text-mint-pulse shrink-0" />
+            <span className="text-xs sm:text-sm text-slate dark:text-slate-dark">
               Telemetry Warning: {telemetryError}
             </span>
           </div>
           <button
             onClick={() => refreshAll()}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#141414] dark:bg-white text-white dark:text-[#141414] hover:bg-[#262626] dark:hover:bg-[#e0e0e0] font-semibold text-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-canopy dark:bg-mint-pulse text-sheetWhite dark:text-canopy-dark hover:bg-canopy/90 dark:hover:bg-mint-pulse/90 font-semibold text-xs transition-colors cursor-pointer"
           >
             <RefreshCw className="w-3 h-3" />
             <span>Retry</span>
@@ -44,7 +44,7 @@ export const OperatorDashboard: React.FC = () => {
       <TopKPICards />
 
       {/* Main Two-Column Layout: Map (Left) + Spatial Consensus (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
         {/* Left: Spatial Telemetry Network Map (8 cols) */}
         <div className="lg:col-span-8 flex flex-col">
           <IndiaSpatialMap />

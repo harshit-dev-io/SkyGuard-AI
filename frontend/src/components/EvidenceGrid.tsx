@@ -5,59 +5,71 @@ export const EvidenceGrid: React.FC = () => {
   const engines = [
     {
       id: "temporal",
-      title: "Temporal",
+      title: "Temporal Residuals",
       icon: Clock,
+      tag: "CUSUM / S1-S2",
       description:
-        "S1/S2 harmonic baselines and climate-adaptive CUSUM drift detection.",
+        "Harmonic diurnal baselines with climate-adaptive CUSUM drift detection for sensor calibration degradation.",
     },
     {
       id: "spatial",
-      title: "Spatial",
+      title: "Spatial Consensus",
       icon: MapPin,
+      tag: "KD-Tree / H3",
       description:
-        "Static candidate topology via KD-tree/H3 with dynamic health weighting",
+        "Dynamic candidate topology via spatial KD-Tree and H3 hex indexing weighted by station health scores.",
     },
     {
       id: "event",
-      title: "Event",
+      title: "Extreme Events",
       icon: Calendar,
+      tag: "Thermodynamics",
       description:
-        "Local extreme detector and 4-point regional fault discriminator",
+        "Local extreme detector and 4-point regional fault discriminator to decouple true climate events from sensor breakdown.",
     },
     {
       id: "health",
-      title: "Health",
+      title: "Health & Kalman",
       icon: HeartPulse,
+      tag: "UKF State",
       description:
-        "Unscented Kalman Filter state updates and repeated-median trend scoring",
+        "Unscented Kalman Filter state updates and repeated-median trend scoring for proactive hardware maintenance.",
     },
   ];
 
   return (
-    <section className="py-16 px-6 max-w-5xl mx-auto">
-      <div className="text-center mb-10">
-        <h2 className="text-xs font-mono tracking-widest uppercase font-bold text-neutral-500 dark:text-neutral-400">
-          Our Evidence Engines
+    <section id="evidence" className="py-20 px-6 max-w-[1200px] mx-auto">
+      <div className="text-center mb-12">
+        <p className="text-canopy dark:text-mint-pulse text-[13px] font-bold uppercase tracking-[0.07em] mb-2">
+          Observatory Evidence Engines
+        </p>
+        <h2 className="text-ink dark:text-white text-[32px] sm:text-[36px] font-light leading-[1.15] tracking-[-0.02em]">
+          Multi-dimensional consensus for undeniable confidence.
         </h2>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {engines.map((eng) => {
           const Icon = eng.icon;
           return (
             <div
               key={eng.id}
-              className="p-6 rounded-2xl bg-surface-light dark:bg-surface-dark border border-borderMuted-light dark:border-borderMuted-dark shadow-card dark:shadow-cardDark text-center flex flex-col items-center hover:border-neutral-400 dark:hover:border-neutral-600 transition-colors"
+              className="p-6 rounded-cards bg-sheetWhite dark:bg-sheetWhite-dark border border-sage-mist dark:border-sage-dark flex flex-col justify-between hover:border-canopy dark:hover:border-mint-pulse transition-colors"
             >
-              <div className="w-10 h-10 mb-4 rounded-full border border-borderMuted-light dark:border-borderMuted-dark flex items-center justify-center text-neutral-600 dark:text-neutral-300">
-                <Icon className="w-5 h-5 stroke-[1.25]" />
+              <div>
+                <div className="w-10 h-10 mb-5 rounded-full bg-creamPaper dark:bg-canopy-dark/40 border border-sage-mist/70 dark:border-sage-dark flex items-center justify-center text-canopy dark:text-mint-pulse">
+                  <Icon className="w-5 h-5 stroke-[1.5]" />
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-slate dark:text-slate-dark block mb-1">
+                  {eng.tag}
+                </span>
+                <h3 className="text-[17px] font-medium text-bark dark:text-bark-dark mb-2">
+                  {eng.title}
+                </h3>
+                <p className="text-[13px] leading-relaxed text-slate dark:text-slate-dark">
+                  {eng.description}
+                </p>
               </div>
-              <h3 className="text-xs font-mono font-bold tracking-widest uppercase text-ink-light dark:text-ink-dark">
-                {eng.title}
-              </h3>
-              <p className="mt-2 text-[12px] leading-relaxed text-neutral-500 dark:text-neutral-400">
-                {eng.description}
-              </p>
             </div>
           );
         })}

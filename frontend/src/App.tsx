@@ -3,8 +3,10 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { DashboardProvider, useDashboard } from './context/DashboardContext';
 
 import { ThemeProvider } from './context/ThemeContext';
+import { AnnouncementBar } from './components/AnnouncementBar';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
+import { NetworkDiagram } from './components/NetworkDiagram';
 import { PipelineFlow } from './components/PipelineFlow';
 import { EvidenceGrid } from './components/EvidenceGrid';
 import { GuaranteesStrip } from './components/GuaranteesStrip';
@@ -32,15 +34,15 @@ const DashboardRouter: React.FC = () => {
   }, [activeTab, user?.role, setActiveTab]);
 
   return (
-    <div className="min-h-screen bg-canvas dark:bg-[#0e1013] text-ink dark:text-[#f5f5f5] flex flex-col transition-colors duration-200">
+    <div className="min-h-screen bg-creamPaper dark:bg-creamPaper-dark text-bark dark:text-bark-dark flex flex-col transition-colors duration-200">
       <Header />
-      <main className="flex-1 w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Fleet View: Accessible to both Admin and Operator */}
         {activeTab === 'fleet' && <OperatorDashboard />}
 
         {activeTab === 'station' && (
           <div className="space-y-6">
-            <h1 className="text-[28px] font-medium text-ink dark:text-cream">
+            <h1 className="text-[28px] font-medium text-bark dark:text-white">
               Geospatial Station Inspector
             </h1>
             <IndiaSpatialMap />
@@ -49,7 +51,7 @@ const DashboardRouter: React.FC = () => {
 
         {activeTab === 'explainability' && (
           <div className="space-y-6">
-            <h1 className="text-[28px] font-medium text-ink dark:text-cream">
+            <h1 className="text-[28px] font-medium text-bark dark:text-white">
               Evidence &amp; Decision Inspector
             </h1>
             <ExplainabilityDrawer />
@@ -59,7 +61,7 @@ const DashboardRouter: React.FC = () => {
 
         {activeTab === 'alerts' && (
           <div className="space-y-6">
-            <h1 className="text-[28px] font-medium text-ink dark:text-cream">
+            <h1 className="text-[28px] font-medium text-bark dark:text-white">
               Active Alerts &amp; Extreme Events
             </h1>
             <AnomalyTable />
@@ -71,19 +73,19 @@ const DashboardRouter: React.FC = () => {
           user?.role === 'admin' ? (
             <ManageAWS />
           ) : (
-            <div className="rounded-2xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/20 p-8 text-center max-w-md mx-auto my-16 space-y-4">
+            <div className="rounded-cards border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/20 p-8 text-center max-w-md mx-auto my-16 space-y-4">
               <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
                 <ShieldAlert className="w-6 h-6" />
               </div>
-              <h2 className="text-lg font-bold text-[#141414] dark:text-white">
+              <h2 className="text-lg font-bold text-bark dark:text-white">
                 Administrator Privileges Required
               </h2>
-              <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                AWS Station Provisioning, Hardware Calibration, and Fleet Simulation are restricted to System Administrators. Your current database role is <span className="font-semibold uppercase text-emerald-600 dark:text-emerald-400">{user?.role}</span>.
+              <p className="text-xs text-slate dark:text-slate-dark leading-relaxed">
+                AWS Station Provisioning, Hardware Calibration, and Fleet Simulation are restricted to System Administrators. Your current database role is <span className="font-semibold uppercase text-canopy dark:text-mint-pulse">{user?.role}</span>.
               </p>
               <button
                 onClick={() => setActiveTab('fleet')}
-                className="px-4 py-2 rounded-xl bg-[#141414] dark:bg-white text-white dark:text-[#141414] text-xs font-semibold uppercase tracking-wider hover:opacity-90 transition-opacity cursor-pointer"
+                className="px-4 py-2 rounded-buttons bg-canopy dark:bg-white text-white dark:text-bark text-xs font-semibold uppercase tracking-wider hover:opacity-90 transition-opacity cursor-pointer"
               >
                 Return to Fleet View
               </button>
@@ -110,9 +112,9 @@ const RootApp: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-paper-light dark:bg-paper-dark transition-colors duration-200">
-        <div className="text-sm text-neutral-500 dark:text-neutral-400 tracking-widest uppercase animate-pulse font-medium">
-          Validating Security Session...
+      <div className="min-h-screen flex items-center justify-center bg-creamPaper dark:bg-creamPaper-dark transition-colors duration-200">
+        <div className="text-sm text-slate dark:text-slate-dark tracking-widest uppercase animate-pulse font-medium">
+          Validating Observatory Security Session...
         </div>
       </div>
     );
@@ -127,11 +129,13 @@ const RootApp: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark font-sans transition-colors duration-200">
+    <div className="min-h-screen bg-creamPaper dark:bg-creamPaper-dark text-bark dark:text-bark-dark font-sans transition-colors duration-200">
+      <AnnouncementBar />
       <Navbar onOpenAuth={(mode) => setAuthModalState({ isOpen: true, mode })} />
 
       <main>
         <Hero onRegisterClick={() => setAuthModalState({ isOpen: true, mode: 'signup' })} />
+        <NetworkDiagram />
         <PipelineFlow />
         <EvidenceGrid />
         <GuaranteesStrip />

@@ -10,76 +10,77 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-md border-b border-borderMuted-light dark:border-borderMuted-dark transition-colors">
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full h-[72px] bg-sheetWhite dark:bg-sheetWhite-dark border-b border-sage-mist/60 dark:border-sage-dark transition-colors select-none">
+      <div className="max-w-[1200px] h-full mx-auto px-6 flex items-center justify-between">
         {/* Brand */}
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-xs tracking-widest text-emerald-600 dark:text-emerald-400 font-bold">
-            [•]
-          </span>
+        <div className="flex items-center gap-3">
+          <div className="w-4 h-4 rounded-full bg-canopy dark:bg-mint-pulse flex items-center justify-center shrink-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-sheetWhite dark:bg-canopy-dark" />
+          </div>
           <a
             href="#"
-            className="font-sans font-bold text-sm tracking-[0.2em] text-ink-light dark:text-ink-dark uppercase"
+            className="text-[20px] font-medium tracking-tight text-canopy dark:text-white transition-colors"
           >
             SkyGuard AI
           </a>
         </div>
 
         {/* Desktop Links */}
-        <nav className="hidden md:flex items-center space-x-8 text-xs font-mono uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
+        <nav className="hidden md:flex items-center space-x-8 text-[14px] font-normal text-bark dark:text-bark-dark">
           <a
             href="#home"
-            className="hover:text-ink-light dark:hover:text-ink-dark transition-colors"
+            className="hover:text-canopy dark:hover:text-mint-pulse transition-colors"
           >
             Home
           </a>
           <a
-            href="#about"
-            className="hover:text-ink-light dark:hover:text-ink-dark transition-colors"
+            href="#flow"
+            className="hover:text-canopy dark:hover:text-mint-pulse transition-colors"
           >
-            About
+            Architecture
           </a>
           <div className="relative group">
-            <button className="flex items-center gap-1 hover:text-ink-light dark:hover:text-ink-dark transition-colors">
-              Stations <ChevronDown className="w-3 h-3 opacity-60" />
+            <button className="flex items-center gap-1.5 hover:text-canopy dark:hover:text-mint-pulse transition-colors cursor-pointer">
+              <span>Observatory</span>
+              <ChevronDown className="w-3.5 h-3.5 opacity-60 group-hover:rotate-180 transition-transform" />
             </button>
-            <div className="absolute top-full -left-2 mt-2 w-40 bg-surface-light dark:bg-surface-dark border border-borderMuted-light dark:border-borderMuted-dark rounded-md shadow-card dark:shadow-cardDark py-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all text-left">
-              <a
-                href="#registration"
-                className="block px-4 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-ink-light dark:text-ink-dark text-[11px]"
-              >
-                Registration
-              </a>
+            <div className="absolute top-full -left-4 mt-2 w-48 bg-sheetWhite dark:bg-sheetWhite-dark border border-sage-mist dark:border-sage-dark rounded-cards p-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all text-left">
               <a
                 href="#network"
-                className="block px-4 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-ink-light dark:text-ink-dark text-[11px]"
+                className="block px-3 py-2 rounded-buttons hover:bg-creamPaper dark:hover:bg-canopy-dark/40 text-bark dark:text-bark-dark text-[13px] font-normal"
               >
-                Network Map
+                Sensor Mesh Topology
+              </a>
+              <a
+                href="#evidence"
+                className="block px-3 py-2 rounded-buttons hover:bg-creamPaper dark:hover:bg-canopy-dark/40 text-bark dark:text-bark-dark text-[13px] font-normal"
+              >
+                Evidence Engines
               </a>
             </div>
           </div>
           <a
-            href="#alerts"
-            className="hover:text-ink-light dark:hover:text-ink-dark transition-colors"
+            href="#guarantees"
+            className="hover:text-canopy dark:hover:text-mint-pulse transition-colors"
           >
-            Alerts
+            Guarantees
           </a>
         </nav>
 
         {/* Actions */}
-        <div className="hidden md:flex items-center space-x-4">
+        <div className="hidden md:flex items-center space-x-3.5">
           <ThemeToggle />
           <button
             onClick={() => onOpenAuth("login")}
-            className="px-4 py-1.5 text-xs font-mono font-semibold tracking-wider uppercase border border-borderMuted-light dark:border-borderMuted-dark text-ink-light dark:text-ink-dark hover:bg-neutral-100 dark:hover:bg-neutral-800/80 rounded transition-all cursor-pointer"
+            className="px-5 py-2 text-[14px] font-medium border border-canopy dark:border-mint-pulse text-canopy dark:text-mint-pulse hover:bg-canopy/5 dark:hover:bg-mint-pulse/10 rounded-buttons transition-colors cursor-pointer"
           >
-            Login
+            Sign in
           </button>
           <button
             onClick={() => onOpenAuth("signup")}
-            className="px-4 py-1.5 text-xs font-mono font-bold tracking-wider uppercase bg-[#141414] dark:bg-white text-white dark:text-[#141414] hover:bg-[#262626] dark:hover:bg-[#e0e0e0] rounded transition-all shadow-sm cursor-pointer"
+            className="px-6 py-2 text-[14px] font-medium bg-canopy dark:bg-mint-pulse text-white dark:text-bark hover:bg-canopy-dark dark:hover:bg-mint-hover rounded-buttons transition-colors cursor-pointer"
           >
-            Sign Up
+            Request Access
           </button>
         </div>
 
@@ -88,38 +89,39 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
           <ThemeToggle />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1.5 text-ink-light dark:text-ink-dark"
+            className="p-2 text-bark dark:text-bark-dark"
+            aria-label="Toggle navigation menu"
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5 text-canopy dark:text-white" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-borderMuted-light dark:border-borderMuted-dark bg-paper-light dark:bg-paper-dark p-6 space-y-4 font-mono text-xs uppercase">
-          <a href="#home" className="block text-ink-light dark:text-ink-dark">Home</a>
-          <a href="#about" className="block text-ink-light dark:text-ink-dark">About</a>
-          <a href="#stations" className="block text-ink-light dark:text-ink-dark">Stations</a>
-          <a href="#alerts" className="block text-ink-light dark:text-ink-dark">Alerts</a>
-          <div className="pt-4 border-t border-borderMuted-light dark:border-borderMuted-dark flex gap-3">
+        <div className="md:hidden border-b border-sage-mist dark:border-sage-dark bg-sheetWhite dark:bg-sheetWhite-dark p-6 space-y-4 text-[14px]">
+          <a href="#home" onClick={() => setMobileMenuOpen(false)} className="block text-bark dark:text-bark-dark font-medium">Home</a>
+          <a href="#flow" onClick={() => setMobileMenuOpen(false)} className="block text-bark dark:text-bark-dark font-medium">Architecture</a>
+          <a href="#network" onClick={() => setMobileMenuOpen(false)} className="block text-bark dark:text-bark-dark font-medium">Observatory Mesh</a>
+          <a href="#evidence" onClick={() => setMobileMenuOpen(false)} className="block text-bark dark:text-bark-dark font-medium">Evidence Engines</a>
+          <div className="pt-4 border-t border-sage-mist/50 dark:border-sage-dark/50 flex gap-3">
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 onOpenAuth("login");
               }}
-              className="flex-1 py-2 text-center border border-borderMuted-light dark:border-borderMuted-dark text-ink-light dark:text-ink-dark font-semibold rounded cursor-pointer"
+              className="flex-1 py-2.5 text-center border border-canopy dark:border-mint-pulse text-canopy dark:text-mint-pulse font-medium rounded-buttons cursor-pointer text-sm"
             >
-              Login
+              Sign in
             </button>
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 onOpenAuth("signup");
               }}
-              className="flex-1 py-2 text-center bg-[#141414] dark:bg-white text-white dark:text-[#141414] font-bold rounded cursor-pointer"
+              className="flex-1 py-2.5 text-center bg-canopy dark:bg-mint-pulse text-white dark:text-bark font-medium rounded-buttons cursor-pointer text-sm"
             >
-              Sign Up
+              Request Access
             </button>
           </div>
         </div>

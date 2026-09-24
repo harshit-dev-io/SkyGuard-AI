@@ -1,30 +1,34 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.auth.routes import router as auth_router
-from app.config.database import Base, engine , setup_timescaledb
+from app.config.database import Base, engine, setup_timescaledb
 from app.config.logging import logger
 from app.config.settings import settings
 from fastapi.middleware import cors
 from app.edge_simulator.router import router as edge_router
+from app.regions.router import router as regions_router
 from app.ingestion_pipeline.router import router as ingest_router
 from app.ingestion_pipeline.consumer import pipeline_worker
 from app.fusion_engine.router import router as fusion_router
-from sqlalchemy import text
 from app.fusion_engine.consumer import fused_consumer_daemon
+from sqlalchemy import text
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Initializing database connection...")
-    
-    async with engine.begin() as conn:
-        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
-        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb;"))
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb;"))
 
-    async with engine.begin() as conn:
-        await setup_timescaledb()
-        await conn.run_sync(Base.metadata.create_all)
-        
+        async with engine.begin() as conn:
+            await setup_timescaledb()
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database schema synchronized.")
+    except Exception as exc:
+        logger.warning(f"Database initialization deferred (Postgres offline or unavailable): {exc}")
+
     try:
         await pipeline_worker.start()
     except Exception as e:
@@ -35,10 +39,12 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Fused evidence consumer skipped due to network/port restriction: {e}")
 
-    logger.info("Database schema synchronized.")
     yield
     logger.info("Disposing engine connections...")
-    await engine.dispose()
+    try:
+        await engine.dispose()
+    except Exception:
+        pass
 
 
 app = FastAPI(
@@ -58,6 +64,8 @@ app.add_middleware(
 # Register Sub-Routers
 app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
 app.include_router(edge_router, prefix=settings.API_V1_PREFIX)
+app.include_router(regions_router, prefix=settings.API_V1_PREFIX)
+app.include_router(regions_router, prefix="/api")
 app.include_router(ingest_router, prefix=settings.API_V1_PREFIX)
 app.include_router(fusion_router, prefix=settings.API_V1_PREFIX)
 
