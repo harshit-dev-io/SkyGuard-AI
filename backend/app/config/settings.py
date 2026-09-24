@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     PBKDF2_ITERATIONS: int = 600_000
     PBKDF2_SALT_SIZE: int = 16
 
-    DATABASE_URL: str 
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/skyguard"
 
     KAFKA_BOOTSTRAP_SERVERS: str = "localhost:9092"
     KAFKA_TOPIC_RAW_OBSERVATIONS: str = "observations.raw"

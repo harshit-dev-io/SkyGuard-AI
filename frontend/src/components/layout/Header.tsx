@@ -38,13 +38,13 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ onClick, isActive 
       aria-label="User profile settings"
       className={`relative w-9 h-9 rounded-full flex items-center justify-center font-semibold text-xs transition-all cursor-pointer select-none ${
         isActive
-          ? 'ring-2 ring-[#0066ff] border-2 border-[#141414] dark:border-white bg-[#0066ff]/10 text-[#141414] dark:text-white'
-          : 'border border-[#e0e0e0] dark:border-[#282e3a] bg-[#f3f3f3] dark:bg-[#16191f] text-[#141414] dark:text-white hover:bg-[#e0e0e0] dark:hover:bg-[#282e3a]'
+          ? 'ring-2 ring-canopy dark:ring-mint-pulse border-2 border-canopy dark:border-white bg-canopy/10 dark:bg-mint-pulse/10 text-canopy dark:text-white'
+          : 'border border-sage-mist dark:border-sage-dark bg-creamPaper dark:bg-canopy-dark/30 text-bark dark:text-bark-dark hover:border-canopy dark:hover:border-mint-pulse'
       }`}
     >
       <span>{initials}</span>
-      {/* Online indicator dot - Mobbin electric blue accent */}
-      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#0066ff] border-2 border-white dark:border-[#0e1013]" />
+      {/* Online indicator dot - Arcadia Mint Pulse LED accent */}
+      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-mint-pulse border-2 border-sheetWhite dark:border-sheetWhite-dark" />
     </button>
   );
 };
@@ -71,49 +71,49 @@ export const Header: React.FC = () => {
   ];
 
   return (
-    <header className="w-full border-b border-[#e0e0e0] dark:border-[#282e3a] bg-white dark:bg-[#0e1013] transition-colors duration-200 sticky top-0 z-30 shadow-none">
-      <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+    <header className="w-full h-[68px] min-h-[68px] border-b border-sage-mist/70 dark:border-sage-dark bg-sheetWhite dark:bg-sheetWhite-dark transition-colors duration-200 sticky top-0 z-40 select-none flex items-center">
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-4">
         {/* Section 1: Brand & Subtitle (Left) */}
         <div
           onClick={() => setActiveTab('fleet')}
           className="flex items-center gap-3 cursor-pointer shrink-0"
         >
-          {/* iOS-style 30% squircle icon tile */}
-          <div className="flex items-center justify-center w-9 h-9 rounded-[11px] bg-[#141414] text-white dark:bg-white dark:text-[#141414] transition-colors shadow-xs">
+          {/* Arcadia 8px radius authority badge */}
+          <div className="flex items-center justify-center w-9 h-9 rounded-buttons bg-canopy text-white dark:bg-mint-pulse dark:text-bark transition-colors">
             <CloudLightning className="w-5 h-5" />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5 leading-none">
-              <span className="text-base font-semibold tracking-tight text-[#141414] dark:text-white">
+              <span className="text-base font-semibold tracking-tight text-canopy dark:text-white">
                 SkyGuard
               </span>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#707070] dark:text-[#9e9e9e]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate dark:text-slate-dark">
                 AI
               </span>
             </div>
-            <span className="text-[11px] text-[#707070] dark:text-[#9e9e9e] mt-0.5 hidden sm:inline font-normal">
-              Weather Station Anomaly Detection
+            <span className="text-[11px] text-slate dark:text-slate-dark mt-0.5 hidden sm:inline font-normal">
+              Atmospheric &amp; AWS Observatory
             </span>
           </div>
         </div>
 
-        {/* Section 2: Center Navigation - Mobbin nav-pill */}
-        <nav className="hidden md:flex items-center p-1 bg-[#f3f3f3] dark:bg-[#16191f] rounded-full border border-[#e0e0e0] dark:border-[#282e3a]">
+        {/* Section 2: Center Navigation - Arcadia nav-pill */}
+        <nav className="hidden md:flex items-center p-1 bg-creamPaper dark:bg-canopy-dark/30 rounded-pills border border-sage-mist/60 dark:border-sage-dark">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`px-4 py-1.5 rounded-full text-xs transition-all flex items-center gap-1.5 focus:outline-none cursor-pointer ${
+                className={`px-4 py-1.5 rounded-pills text-xs transition-all flex items-center gap-1.5 focus:outline-none cursor-pointer ${
                   isActive
-                    ? 'bg-white dark:bg-[#282e3a] text-[#141414] dark:text-white font-semibold shadow-xs'
-                    : 'text-[#707070] dark:text-[#9e9e9e] hover:text-[#141414] dark:hover:text-white font-medium'
+                    ? 'bg-canopy dark:bg-mint-pulse text-white dark:text-bark font-semibold'
+                    : 'text-slate dark:text-slate-dark hover:text-bark dark:hover:text-white font-medium'
                 }`}
               >
                 <span>{item.label}</span>
                 {item.hasBadge && alertCount > 0 && (
-                  <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold text-white bg-[#0066ff] rounded-full min-w-[18px] h-[18px]">
+                  <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold text-white bg-orb-violet rounded-full min-w-[18px] h-[18px]">
                     {alertCount}
                   </span>
                 )}
@@ -127,33 +127,33 @@ export const Header: React.FC = () => {
           {/* Role Indicator Badge */}
           {user && (
             <div
-              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold uppercase tracking-wider border select-none ${
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-pills text-[11px] font-bold uppercase tracking-[0.07em] border select-none ${
                 user.role === 'admin'
-                  ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/60'
-                  : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
+                  ? 'bg-orb-violet/10 text-orb-violet border-orb-violet/30'
+                  : 'bg-canopy/10 dark:bg-mint-pulse/10 text-canopy dark:text-mint-pulse border-canopy/30 dark:border-mint-pulse/30'
               }`}
               title={`Role: ${user.role.toUpperCase()} (from backend)`}
             >
               {user.role === 'admin' ? (
-                <Shield className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                <Shield className="w-3.5 h-3.5" />
               ) : (
-                <Activity className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                <Activity className="w-3.5 h-3.5" />
               )}
               <span>{user.role}</span>
             </div>
           )}
 
-          {/* Quick theme icon toggle - Mobbin pill button */}
+          {/* Quick theme icon toggle */}
           <button
             onClick={toggleTheme}
             aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
             title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-            className="w-9 h-9 rounded-full border border-[#e0e0e0] dark:border-[#282e3a] bg-[#f3f3f3] dark:bg-[#16191f] text-[#141414] dark:text-white flex items-center justify-center hover:bg-[#e0e0e0] dark:hover:bg-[#282e3a] transition-colors cursor-pointer"
+            className="w-9 h-9 rounded-full border border-sage-mist dark:border-sage-dark bg-creamPaper dark:bg-canopy-dark/30 text-bark dark:text-white flex items-center justify-center hover:border-canopy dark:hover:border-mint-pulse transition-colors cursor-pointer"
           >
             {isDark ? (
-              <Sun className="w-4 h-4 text-[#0066ff]" />
+              <Sun className="w-4 h-4 text-mint-pulse" />
             ) : (
-              <Moon className="w-4 h-4 text-[#141414]" />
+              <Moon className="w-4 h-4 text-canopy" />
             )}
           </button>
 
@@ -164,33 +164,6 @@ export const Header: React.FC = () => {
           />
         </div>
       </div>
-
-      {/* Mobile Horizontal Navigation Strip */}
-      <div className="md:hidden border-t border-[#e0e0e0] dark:border-[#282e3a] px-4 py-2 flex items-center gap-1.5 overflow-x-auto scrollbar-none bg-[#fafafa] dark:bg-[#111317]">
-        {navItems.map((item) => {
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`px-3 py-1 rounded-full text-xs whitespace-nowrap transition-all flex items-center gap-1 shrink-0 ${
-                isActive
-                  ? 'bg-white dark:bg-[#282e3a] text-[#141414] dark:text-white font-semibold shadow-xs border border-[#e0e0e0] dark:border-[#384050]'
-                  : 'text-[#707070] dark:text-[#9e9e9e]'
-              }`}
-            >
-              <span>{item.label}</span>
-              {item.hasBadge && alertCount > 0 && (
-                <span className="w-4 h-4 rounded-full bg-[#0066ff] text-white text-[9px] flex items-center justify-center font-bold">
-                  {alertCount}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
     </header>
   );
 };
-
-export default Header;
