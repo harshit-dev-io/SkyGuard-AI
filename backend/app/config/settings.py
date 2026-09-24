@@ -68,6 +68,38 @@ class Settings(BaseSettings):
     CLOCK_DRIFT_MAX_BACKWARD_SECONDS: float = -10.0  
     CLOCK_DRIFT_MAX_FORWARD_SECONDS: float = 300.0  
 
+    QUARANTINE_REDIS_SET_KEY: str = "stations:under_correction"
+    QUARANTINE_TTL_SECONDS: int = 7200  # 2 hours without clean ping before auto-eviction
+
+    # Gate 1: Confirmed Hardware Fault Constraints
+    MIN_CLASSIFICATION_PROBABILITY: float = 0.85
+    PERMITTED_FAULT_CLASSES: list[str] = [
+        "STUCK_SENSOR",
+        "DRIFT",
+        "BIAS",
+        "CALIBRATION_LOSS",
+        "NOISE_INCREASE",
+    ]
+
+    # Gate 2: State Estimate Trustworthiness (Innovation Chi-Square Test)
+    # 1 degree of freedom (single observable scalar update), p=0.01 threshold -> chi2 = 6.635
+    CHI2_INNOVATION_ALPHA_THRESHOLD: float = 6.635
+
+    # Gate 3: Bounded Uncertainty Constraints
+    MAX_ALLOWABLE_POSTERIOR_SIGMA: float = 1.25  # Max standard deviation (e.g. °C, hPa, or % RH)
+
+    # Gate 4: Spatial Neighbor Constraints
+    MIN_REQUIRED_CLEAN_NEIGHBORS: int = 2
+    MAX_NEIGHBOR_DISTANCE_KM: float = 45.0
+
+    # UKF Filter Dynamics Parameters
+    UKF_MODEL_VERSION: str = "ukf-v2.1"
+    UKF_ALPHA: float = 1e-3
+    UKF_BETA: float = 2.0
+    UKF_KAPPA: float = 0.0
+    UKF_PROCESS_NOISE_Q: float = 0.04
+    UKF_DEFAULT_MEASUREMENT_NOISE_R: float = 0.36
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

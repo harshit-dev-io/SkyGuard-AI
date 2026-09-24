@@ -11,6 +11,7 @@ from app.ingestion_pipeline.consumer import pipeline_worker
 from app.fusion_engine.router import router as fusion_router
 from sqlalchemy import text
 from app.fusion_engine.consumer import fused_consumer_daemon
+from app.self_healing.router import router as self_healing_router
 
 
 @asynccontextmanager
@@ -60,6 +61,7 @@ app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
 app.include_router(edge_router, prefix=settings.API_V1_PREFIX)
 app.include_router(ingest_router, prefix=settings.API_V1_PREFIX)
 app.include_router(fusion_router, prefix=settings.API_V1_PREFIX)
+app.include_router(self_healing_router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/health", tags=["Health"])
