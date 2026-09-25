@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.models import User
 from app.auth.schemas import (
+    ChangePasswordRequest,
     LoginRequest,
     TokenRefreshRequest,
     TokenResponse,
@@ -41,6 +42,7 @@ async def login(credentials: LoginRequest, db: AsyncSession = Depends(get_db_ses
     return TokenResponse(
         access_token=AuthService.create_access_token(subject=user.email, role=user.role.value),
         refresh_token=AuthService.create_refresh_token(subject=user.email),
+        role=user.role,
     )
 
 
@@ -84,9 +86,27 @@ async def refresh_token(
     return TokenResponse(
         access_token=AuthService.create_access_token(subject=user.email, role=user.role.value),
         refresh_token=AuthService.create_refresh_token(subject=user.email),
+        role=user.role,
     )
 
 
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_profile(user: User = Depends(get_current_user)):
     return user
+
+
+@router.post("/change-password", status_code=status.HTTP_200_OK)
+async def change_password(
+    payload: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+):
+    if not AuthService.verify_password(payload.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password verification failed.",
+        )
+
+    current_user.hashed_password = AuthService.get_password_hash(payload.new_password)
+    await db.commit()
+    return {"status": "password_updated", "detail": "Password successfully updated."}

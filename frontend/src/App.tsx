@@ -3,28 +3,28 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { DashboardProvider, useDashboard } from './context/DashboardContext';
 
 import { ThemeProvider } from './context/ThemeContext';
-import { AnnouncementBar } from './components/AnnouncementBar';
-import { Navbar } from './components/Navbar';
-import { Hero } from './components/Hero';
-import { NetworkDiagram } from './components/NetworkDiagram';
-import { PipelineFlow } from './components/PipelineFlow';
-import { EvidenceGrid } from './components/EvidenceGrid';
-import { GuaranteesStrip } from './components/GuaranteesStrip';
-import { Footer } from './components/Footer';
+import { MeridianAILandingPage } from './components/landing/MeridianLandingPage';
 import { AuthModal } from './components/AuthModal';
 
 import { Header } from './components/layout/Header';
 import { OperatorDashboard } from './components/operator/OperatorDashboard';
-import { IndiaSpatialMap } from './components/operator/IndiaSpatialMap';
+import { StationInspectorView } from './components/operator/StationInspectorView';
 import { AnomalyTable } from './components/operator/AnomalyTable';
 import { ExplainabilityDrawer } from './components/shared/ExplainabilityDrawer';
 import { ManageAWS } from './components/admin/ManageAWS';
 import { ProfileScreen } from './components/profile/ProfileScreen';
+import { SystemDemoModal } from './components/shared/SystemDemoModal';
+import { InteractiveWalkthrough } from './components/demo/InteractiveWalkthrough';
+import { WalkthroughVideoModal } from './components/demo/WalkthroughVideoModal';
 import { ShieldAlert } from 'lucide-react';
 
-const DashboardRouter: React.FC = () => {
-  const { user } = useAuth();
-  const { activeTab, setActiveTab } = useDashboard();
+interface DashboardRouterProps {
+  onOpenAuth: (mode: 'login' | 'signup') => void;
+}
+
+const DashboardRouter: React.FC<DashboardRouterProps> = ({ onOpenAuth }) => {
+  const { user, isDemoSession } = useAuth();
+  const { activeTab, setActiveTab, isTutorialOpen, setIsTutorialOpen } = useDashboard();
 
   // Guard against non-admin trying to stay on admin-only tabs
   React.useEffect(() => {
@@ -33,21 +33,21 @@ const DashboardRouter: React.FC = () => {
     }
   }, [activeTab, user?.role, setActiveTab]);
 
+  // Launch the game-like interactive spotlight walkthrough upon entering demo
+  React.useEffect(() => {
+    if (isDemoSession) {
+      setIsTutorialOpen(true);
+    }
+  }, [isDemoSession, setIsTutorialOpen]);
+
   return (
-    <div className="min-h-screen bg-creamPaper dark:bg-creamPaper-dark text-bark dark:text-bark-dark flex flex-col transition-colors duration-200">
-      <Header />
-      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="min-h-screen bg-[#FFFFFF] dark:bg-[#15130F] text-[#1B1A18] dark:text-[#F3EFE8] flex flex-col transition-colors duration-200">
+      <Header onOpenAuth={onOpenAuth} />
+      <main className="w-full flex-1 px-3 sm:px-4 lg:px-6 py-5">
         {/* Fleet View: Accessible to both Admin and Operator */}
         {activeTab === 'fleet' && <OperatorDashboard />}
 
-        {activeTab === 'station' && (
-          <div className="space-y-6">
-            <h1 className="text-[28px] font-medium text-bark dark:text-white">
-              Geospatial Station Inspector
-            </h1>
-            <IndiaSpatialMap />
-          </div>
-        )}
+        {activeTab === 'station' && <StationInspectorView />}
 
         {activeTab === 'explainability' && (
           <div className="space-y-6">
@@ -96,12 +96,18 @@ const DashboardRouter: React.FC = () => {
         {/* User Profile & Settings Screen */}
         {activeTab === 'profile' && <ProfileScreen />}
       </main>
+
+      {/* Interactive Walkthrough Coach (discreet floating assistant) */}
+      <InteractiveWalkthrough
+        isOpen={isTutorialOpen}
+        onClose={() => setIsTutorialOpen(false)}
+      />
     </div>
   );
 };
 
 const RootApp: React.FC = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, enterDemoSandbox } = useAuth();
   const [authModalState, setAuthModalState] = useState<{
     isOpen: boolean;
     mode: 'login' | 'signup';
@@ -110,45 +116,48 @@ const RootApp: React.FC = () => {
     mode: 'login',
   });
 
+  const [isVideoWalkthroughOpen, setIsVideoWalkthroughOpen] = useState(false);
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-creamPaper dark:bg-creamPaper-dark transition-colors duration-200">
-        <div className="text-sm text-slate dark:text-slate-dark tracking-widest uppercase animate-pulse font-medium">
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#15130F] transition-colors duration-200">
+        <div className="text-xs font-mono text-[#716C64] dark:text-[#9A938A] tracking-widest uppercase animate-pulse font-medium">
           Validating Observatory Security Session...
         </div>
       </div>
     );
   }
 
-  if (user) {
-    return (
-      <DashboardProvider>
-        <DashboardRouter />
-      </DashboardProvider>
-    );
-  }
-
+  // Wrap everything inside DashboardProvider so context is always available globally
   return (
-    <div className="min-h-screen bg-creamPaper dark:bg-creamPaper-dark text-bark dark:text-bark-dark font-sans transition-colors duration-200">
-      <AnnouncementBar />
-      <Navbar onOpenAuth={(mode) => setAuthModalState({ isOpen: true, mode })} />
+    <DashboardProvider>
+      {user ? (
+        <DashboardRouter
+          onOpenAuth={(mode) => setAuthModalState({ isOpen: true, mode })}
+        />
+      ) : (
+        <div className="min-h-screen bg-white dark:bg-[#15130F] text-[#1B1A18] dark:text-[#F3EFE8] font-sans transition-colors duration-200">
+          <MeridianAILandingPage
+            onOpenAuth={(mode) => setAuthModalState({ isOpen: true, mode })}
+            onOpenWalkthrough={() => setIsVideoWalkthroughOpen(true)}
+          />
+        </div>
+      )}
 
-      <main>
-        <Hero onRegisterClick={() => setAuthModalState({ isOpen: true, mode: 'signup' })} />
-        <NetworkDiagram />
-        <PipelineFlow />
-        <EvidenceGrid />
-        <GuaranteesStrip />
-      </main>
-
-      <Footer />
-
+      {/* Global Auth Modal: Accessible both from Landing and from Live Demo banner */}
       <AuthModal
         isOpen={authModalState.isOpen}
         initialMode={authModalState.mode}
         onClose={() => setAuthModalState((prev) => ({ ...prev, isOpen: false }))}
       />
-    </div>
+
+      {/* Global Video Walkthrough Modal with YouTube embedding */}
+      <WalkthroughVideoModal
+        isOpen={isVideoWalkthroughOpen}
+        onClose={() => setIsVideoWalkthroughOpen(false)}
+        onLaunchDemo={enterDemoSandbox}
+      />
+    </DashboardProvider>
   );
 };
 

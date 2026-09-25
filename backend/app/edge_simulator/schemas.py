@@ -149,3 +149,67 @@ class EdgeTelemetryPayload(BaseModel):
     model_version: str = "tinyml-v3"
     firmware_version: str = "fw-1.4.2"
     battery_voltage: float
+
+
+class FleetSummaryResponse(BaseModel):
+    stations_online: int
+    capacity: int
+    online_pct: float
+    trend_online: str
+    degraded_drift: int
+    degraded_pct: float
+    trend_degraded: str
+    extreme_events: int
+    extreme_type: str
+    trend_extreme: str
+    confirmed_faults: int
+    fault_badge: str
+    trend_faults: str
+
+
+class CriticalIsolationItem(BaseModel):
+    station_id: str
+    message: str
+    severity: str = "CRITICAL"
+    timestamp: str = "Just now"
+
+
+class SpatialConsensusResponse(BaseModel):
+    active_clusters: int
+    candidate_topology: str = "KD-Tree (k=8)"
+    bad_neighbor_guard: str = "STANDBY"
+    badNeighborGuard: str = "STANDBY"
+    contaminated_count: int
+    microburst_detection: str = "None Active"
+    critical_isolations: List[CriticalIsolationItem] = Field(default_factory=list)
+
+
+class InspectionBundleResponse(BaseModel):
+    station_id: str
+    bundle_id: str
+    deterministic_gate: str
+    edge_residual: str
+    spatial_corroboration: str
+    ukf_correction: Optional[float] = None
+    ukf_uncertainty: str
+    ukf_badge: str
+    raw_store_id: str
+
+
+class AnomalyResponseItem(BaseModel):
+    id: str
+    station_id: str
+    wsi: str
+    state: str
+    fault_attribution: str
+    evidence_chain: List[str] = Field(default_factory=list)
+    confidence: float
+    uncertainty: str
+    action: str = "Verify"
+    inspection: Optional[InspectionBundleResponse] = None
+
+
+class AnomalyActionResponse(BaseModel):
+    status: str
+    action: str
+    station_id: str
