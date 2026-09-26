@@ -10,7 +10,8 @@ export const API_BASE_URL: string = (
  */
 export const MAP_API_BASE_URL: string = (
   import.meta.env.VITE_MAP_API_URL ||
-  'http://127.0.0.1:8000/api/v1'
+  import.meta.env.VITE_API_URL ||
+  'https://skyguard-ai-899b.onrender.com/api/v1'
 ).replace(/\/+$/, '');
 
 /**

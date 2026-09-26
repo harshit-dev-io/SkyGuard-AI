@@ -64,17 +64,30 @@ class SkyGuardApiService {
       const data = await this.request<any[]>('/edge/stations?limit=500');
       if (Array.isArray(data) && data.length > 0) {
         const mapped = data.map((item: any) => {
-          const { x, y } = this.projectToSvg(item.latitude, item.longitude);
+          let lat = item.latitude;
+          let lng = item.longitude;
+
+          // Geographic coordinate validation for Ambala / Mullana (Haryana, India)
+          const lowerName = (item.name || '').toLowerCase();
+          if (lowerName.includes('ambala') && (lng < 75.0 || lng > 78.5)) {
+            lat = 30.3782;
+            lng = 76.7767;
+          } else if (lowerName.includes('mullana') && (lng < 75.0 || lng > 78.5)) {
+            lat = 30.2450;
+            lng = 77.0650;
+          }
+
+          const { x, y } = this.projectToSvg(lat, lng);
           const status: StationStatus = item.is_active ? 'HEALTHY' : 'SENSOR_FAULT';
           return {
             id: item.station_id,
             name: item.name,
             status,
-            lat: item.latitude,
-            lng: item.longitude,
+            lat,
+            lng,
             x,
             y,
-            elevation: item.elevation || 200,
+            elevation: item.elevation || 260,
             rh: 62.0,
             temp: 28.5,
             dewPoint: 19.8,

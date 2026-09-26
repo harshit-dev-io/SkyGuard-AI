@@ -15,9 +15,11 @@ import type {
 import type { StationGeoNode } from '../../types/dashboard';
 import {
   ChevronRight,
+  ChevronLeft,
+  ChevronUp,
+  ChevronDown,
   ArrowLeft,
   RotateCcw,
-  RefreshCw,
   Plus,
   Minus,
   AlertTriangle,
@@ -28,7 +30,6 @@ import {
   Gauge,
   Thermometer,
   Layers,
-  ChevronDown,
   X,
   Compass,
   Search,
@@ -83,6 +84,9 @@ export const IndiaSpatialMap: React.FC = () => {
   const stateSelectorRef = useRef<HTMLDivElement>(null);
   const stateDropdownMenuRef = useRef<HTMLDivElement>(null);
   const districtSelectorRef = useRef<HTMLDivElement>(null);
+
+  // Navigation request counter — prevents stale async responses from overriding the viewport
+  const navRequestIdRef = useRef<number>(0);
 
   // Update State Dropdown Position for Portal Rendering
   const updateStateDropdownPosition = () => {
@@ -208,6 +212,15 @@ export const IndiaSpatialMap: React.FC = () => {
       zoomControl: false,
       attributionControl: false,
       scrollWheelZoom: true,
+      dragging: true,
+      touchZoom: true,
+      doubleClickZoom: true,
+      boxZoom: true,
+      keyboard: true,
+      keyboardPanDelta: 80,
+      inertia: true,
+      inertiaDeceleration: 3000,
+      worldCopyJump: false,
       fadeAnimation: true,
       zoomAnimation: true,
     });
@@ -223,6 +236,14 @@ export const IndiaSpatialMap: React.FC = () => {
     // Layer groups
     const stationGroup = L.layerGroup().addTo(map);
     stationMarkersLayerRef.current = stationGroup;
+
+    // Explicitly enable all directional dragging and interaction modes
+    map.dragging.enable();
+    if (map.touchZoom) map.touchZoom.enable();
+    if (map.doubleClickZoom) map.doubleClickZoom.enable();
+    if (map.scrollWheelZoom) map.scrollWheelZoom.enable();
+    if (map.boxZoom) map.boxZoom.enable();
+    if (map.keyboard) map.keyboard.enable();
 
     mapInstanceRef.current = map;
 
@@ -245,6 +266,7 @@ export const IndiaSpatialMap: React.FC = () => {
 
   // Fetch initial regions and India GeoJSON
   const loadInitialData = async () => {
+    const requestId = ++navRequestIdRef.current;
     setIsLoading(true);
     setApiError(null);
     try {
@@ -253,15 +275,21 @@ export const IndiaSpatialMap: React.FC = () => {
         mapApi.getIndiaGeoJson(),
       ]);
 
+      // Always store the data so dropdowns/refs stay populated
       setRegions(fetchedRegions);
       indiaGeoJsonDataRef.current = indiaGeoJson;
 
+      // Only fly to India if this is still the active navigation request
+      if (navRequestIdRef.current !== requestId) return;
       renderIndiaLevel(indiaGeoJson, fetchedRegions);
     } catch (err: any) {
+      if (navRequestIdRef.current !== requestId) return;
       console.error('Error initializing map data:', err);
       setApiError('Unable to load geospatial telemetry data. Using standard national registry.');
     } finally {
-      setIsLoading(false);
+      if (navRequestIdRef.current === requestId) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -306,9 +334,9 @@ export const IndiaSpatialMap: React.FC = () => {
             r.id === cleanName
         );
 
-        const stCount = matchedRegion ? matchedRegion.station_count : 24;
-        const healthy = matchedRegion ? matchedRegion.healthy : 21;
-        const anom = matchedRegion ? matchedRegion.anomalies : 2;
+        const stCount = matchedRegion?.station_count ?? 0;
+        const healthy = matchedRegion?.healthy ?? 0;
+        const anom = matchedRegion?.anomalies ?? 0;
 
         // Tooltip on state hover
         layer.bindTooltip(
@@ -412,6 +440,7 @@ export const IndiaSpatialMap: React.FC = () => {
 
   // Drill Down: Level 1 -> Level 2 (Any State/UT)
   const drillDownToRegion = async (regionId: string, regionName: string, fallbackRegion?: RegionSummary) => {
+    const requestId = ++navRequestIdRef.current;
     setIsLoading(true);
     setApiError(null);
     try {
@@ -422,19 +451,19 @@ export const IndiaSpatialMap: React.FC = () => {
           id: cleanId,
           name: regionName,
           code: regionName.slice(0, 2).toUpperCase(),
-          capital: 'State Capital',
+          capital: '',
           center: [22.5, 78.5] as [number, number],
           bounds: [
             [20.0, 75.0],
             [25.0, 82.0],
           ] as [[number, number], [number, number]],
-          station_count: 180,
-          healthy: 160,
-          anomalies: 14,
-          faults: 6,
-          drift: 2,
+          station_count: 0,
+          healthy: 0,
+          anomalies: 0,
+          faults: 0,
+          drift: 0,
           unknown: 0,
-          district_count: 15,
+          district_count: 0,
         };
 
       setSelectedRegion(matched);
@@ -452,6 +481,9 @@ export const IndiaSpatialMap: React.FC = () => {
           : mapApi.getRegionGeoJson(matched.id),
       ]);
 
+      // Guard: discard if user already started a different navigation
+      if (navRequestIdRef.current !== requestId) return;
+
       if (regionGeoJson) {
         cachedRegionGeoJsonRef.current[matched.id] = regionGeoJson;
       }
@@ -461,10 +493,13 @@ export const IndiaSpatialMap: React.FC = () => {
 
       renderRegionLevel(matched, districtList, stList, regionGeoJson);
     } catch (err: any) {
+      if (navRequestIdRef.current !== requestId) return;
       console.error('Error entering region view:', err);
       setApiError(`Failed to load districts for ${regionName}.`);
     } finally {
-      setIsLoading(false);
+      if (navRequestIdRef.current === requestId) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -522,10 +557,10 @@ export const IndiaSpatialMap: React.FC = () => {
             (d) => d.name.toLowerCase() === dName.toLowerCase() || dName.toLowerCase().includes(d.id)
           );
 
-          const stCount = matched ? matched.station_count : 12;
-          const healthy = matched ? matched.healthy : 10;
-          const anom = matched ? matched.anomalies : 1;
-          const faults = matched ? matched.faults : 1;
+          const stCount = matched?.station_count ?? 0;
+          const healthy = matched?.healthy ?? 0;
+          const anom = matched?.anomalies ?? 0;
+          const faults = matched?.faults ?? 0;
 
           // District name label
           layer.bindTooltip(dName, {
@@ -583,7 +618,7 @@ export const IndiaSpatialMap: React.FC = () => {
                 faults,
                 drift: 0,
                 unknown: 0,
-                elevation: 250,
+                elevation: 0,
               };
               const bounds = typeof (layer as any).getBounds === 'function' ? (layer as any).getBounds() : undefined;
               drillDownToDistrict(targetDistrict, bounds);
@@ -598,7 +633,14 @@ export const IndiaSpatialMap: React.FC = () => {
     // Render AWS Station markers across the state
     renderRegionStationMarkers(stList);
 
-    // Smoothly fly to Region bounds
+    // Fly to actual GeoJSON layer bounds if available (more accurate than pre-defined region.bounds)
+    if (districtsGeoJsonLayerRef.current) {
+      const layerBounds = districtsGeoJsonLayerRef.current.getBounds();
+      if (layerBounds && layerBounds.isValid()) {
+        map.flyToBounds(layerBounds, { duration: 1.2, padding: [30, 30] });
+        return;
+      }
+    }
     map.flyToBounds(region.bounds, { duration: 1.2, padding: [30, 30] });
   };
 
@@ -653,6 +695,7 @@ export const IndiaSpatialMap: React.FC = () => {
 
   // Drill Down: Level 2 -> Level 3 (District View)
   const drillDownToDistrict = async (district: DistrictSummary, bounds?: L.LatLngBounds) => {
+    const requestId = ++navRequestIdRef.current;
     setIsLoading(true);
     setApiError(null);
     try {
@@ -663,6 +706,10 @@ export const IndiaSpatialMap: React.FC = () => {
 
       // Fetch stations inside this district from API
       const stations = await mapApi.getDistrictStations(district.id);
+
+      // Guard: discard if user already started a different navigation
+      if (navRequestIdRef.current !== requestId) return;
+
       setDistrictStations(stations);
 
       const map = mapInstanceRef.current;
@@ -707,10 +754,13 @@ export const IndiaSpatialMap: React.FC = () => {
         map.flyTo(district.center, 10.5, { duration: 1.2 });
       }
     } catch (err: any) {
+      if (navRequestIdRef.current !== requestId) return;
       console.error('Error entering district view:', err);
       setApiError(`Failed to load stations for district ${district.name}.`);
     } finally {
-      setIsLoading(false);
+      if (navRequestIdRef.current === requestId) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -782,44 +832,44 @@ export const IndiaSpatialMap: React.FC = () => {
   };
 
   // Station Click: Level 3 -> Level 4 (Station Telemetry Detail & Global Context Sync)
-  const handleStationSelect = (st: StationDetail | StationGeoNode) => {
+  const handleStationSelect = async (st: StationDetail | StationGeoNode) => {
     let detail: StationDetail;
     if ('telemetry' in st) {
       detail = st as StationDetail;
     } else {
-      detail = {
-        id: st.id,
-        name: st.name,
-        district_id: selectedDistrict?.id || 'central',
-        district_name: selectedDistrict?.name || 'Central Met',
-        region_id: selectedRegion?.id || 'india',
-        region_name: selectedRegion?.name || 'India',
-        latitude: st.lat,
-        longitude: st.lng,
-        elevation: st.elevation,
-        status: st.status as any,
-        status_label: getStatusLabel(st.status),
-        wsi: st.wsi || `0-356-0-${st.id}`,
-        firmware_version: 'v2.4.1-sg',
-        telemetry: {
-          temperature: st.temp,
-          relative_humidity: st.rh,
-          atmospheric_pressure: st.pressure,
-          dew_point: st.dewPoint,
-          wind_speed: 3.2,
-          wind_direction: 'NW',
-          rainfall_rate: 0.0,
-          solar_radiation: 740.0,
-          timestamp: '2026-09-24T09:30:00Z',
-        },
-        sensor_health: {
-          temperature_sensor: 'NOMINAL',
-          humidity_sensor: 'NOMINAL',
-          barometer: 'NOMINAL',
-          anemometer: 'NOMINAL',
-          rain_gauge: 'NOMINAL',
-        },
-      };
+      // Try to fetch real telemetry from the backend API
+      const fetched = await mapApi.getStationTelemetry(st.id);
+      if (fetched) {
+        detail = fetched;
+      } else {
+        detail = {
+          id: st.id,
+          name: st.name,
+          district_id: selectedDistrict?.id || '',
+          district_name: selectedDistrict?.name || '',
+          region_id: selectedRegion?.id || '',
+          region_name: selectedRegion?.name || '',
+          latitude: st.lat,
+          longitude: st.lng,
+          elevation: st.elevation,
+          status: st.status as any,
+          status_label: getStatusLabel(st.status),
+          wsi: st.wsi || '',
+          firmware_version: '',
+          telemetry: {
+            temperature: st.temp,
+            relative_humidity: st.rh,
+            atmospheric_pressure: st.pressure,
+            dew_point: st.dewPoint,
+            wind_speed: 0,
+            wind_direction: '--',
+            rainfall_rate: 0,
+            solar_radiation: 0,
+            timestamp: new Date().toISOString(),
+          },
+          sensor_health: {},
+        };
+      }
     }
 
     setActiveStationDetail(detail);
@@ -889,13 +939,38 @@ export const IndiaSpatialMap: React.FC = () => {
     }
   };
 
-  // Custom Zoom Handlers
+  // Custom Zoom & Pan Handlers
   const handleZoomIn = () => {
     mapInstanceRef.current?.zoomIn();
   };
 
   const handleZoomOut = () => {
     mapInstanceRef.current?.zoomOut();
+  };
+
+  // Directional Pan (scroll map Up, Down, Left, Right)
+  const handlePan = (dx: number, dy: number) => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.panBy([dx, dy], { animate: true, duration: 0.25 });
+    }
+  };
+
+  // Keyboard cursor key navigation (↑ ↓ ← →)
+  const handleMapKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const delta = 120;
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      handlePan(0, -delta);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      handlePan(0, delta);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      handlePan(-delta, 0);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      handlePan(delta, 0);
+    }
   };
 
   const filteredRegions = regions.filter((r) =>
@@ -1073,21 +1148,6 @@ export const IndiaSpatialMap: React.FC = () => {
             />
             <span>{isLive ? 'Live' : 'Paused'}</span>
           </button>
-
-          {/* Telemetry Refresh */}
-          <button
-            onClick={() => {
-              refreshAll();
-              if (selectedDistrict) {
-                mapApi.getDistrictStations(selectedDistrict.id).then(setDistrictStations);
-              }
-            }}
-            title="Force Telemetry Sync"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-slate dark:text-slate-dark border border-sage-mist dark:border-sage-dark bg-creamPaper dark:bg-field-dark hover:bg-sage-pale/40 dark:hover:bg-canopy-dark/40 transition-colors cursor-pointer"
-          >
-            <RefreshCw className="w-3 h-3 text-canopy dark:text-mint-pulse" />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
         </div>
       </div>
 
@@ -1195,8 +1255,55 @@ export const IndiaSpatialMap: React.FC = () => {
 
       {/* Main Map Container */}
       <div className="relative w-full flex-1 min-h-[460px] lg:min-h-[520px] rounded-cards overflow-hidden border border-sage-mist/70 dark:border-sage-dark bg-[#081310] select-none">
-        {/* Leaflet Map Div */}
-        <div ref={mapContainerRef} className="w-full h-full min-h-[460px] lg:min-h-[520px]" />
+        {/* Leaflet Map Div with Keyboard & Cursor Drag Support */}
+        <div
+          ref={mapContainerRef}
+          tabIndex={0}
+          onKeyDown={handleMapKeyDown}
+          className="w-full h-full min-h-[460px] lg:min-h-[520px] outline-none cursor-grab active:cursor-grabbing focus:ring-1 focus:ring-mint-pulse/30"
+          title="Click to focus. Drag with mouse cursor, click arrow buttons, or use keyboard arrow keys (↑ ↓ ← →) to scroll."
+        />
+
+        {/* Directional Pan Pad (Up, Down, Left, Right arrows) */}
+        <div className="absolute top-4 right-14 z-[400] bg-[#0e241e]/90 border border-sage-mist/40 dark:border-sage-dark rounded-xl p-1 shadow-lg backdrop-blur-sm flex flex-col items-center gap-0.5">
+          <button
+            onClick={() => handlePan(0, -100)}
+            title="Pan Up (Arrow Up)"
+            className="w-6 h-6 rounded hover:bg-[#15382f] text-slate-dark hover:text-mint-pulse flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <ChevronUp className="w-4 h-4" />
+          </button>
+          <div className="flex items-center gap-0.5">
+            <button
+              onClick={() => handlePan(-100, 0)}
+              title="Pan Left (Arrow Left)"
+              className="w-6 h-6 rounded hover:bg-[#15382f] text-slate-dark hover:text-mint-pulse flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={resetToIndia}
+              title="Fit to India"
+              className="w-6 h-6 rounded hover:bg-[#15382f] text-mint-pulse flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3 h-3" />
+            </button>
+            <button
+              onClick={() => handlePan(100, 0)}
+              title="Pan Right (Arrow Right)"
+              className="w-6 h-6 rounded hover:bg-[#15382f] text-slate-dark hover:text-mint-pulse flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+          <button
+            onClick={() => handlePan(0, 100)}
+            title="Pan Down (Arrow Down)"
+            className="w-6 h-6 rounded hover:bg-[#15382f] text-slate-dark hover:text-mint-pulse flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <ChevronDown className="w-4 h-4" />
+          </button>
+        </div>
 
         {/* Custom Zoom Controls */}
         <div className="absolute top-4 right-4 z-[400] flex flex-col gap-1">
@@ -1213,13 +1320,6 @@ export const IndiaSpatialMap: React.FC = () => {
             className="w-8 h-8 rounded-lg bg-[#0e241e]/90 hover:bg-[#15382f] border border-sage-mist/40 dark:border-sage-dark text-white flex items-center justify-center shadow-lg transition-colors cursor-pointer"
           >
             <Minus className="w-4 h-4" />
-          </button>
-          <button
-            onClick={resetToIndia}
-            title="Fit to India"
-            className="w-8 h-8 rounded-lg bg-[#0e241e]/90 hover:bg-[#15382f] border border-sage-mist/40 dark:border-sage-dark text-mint-pulse flex items-center justify-center shadow-lg transition-colors cursor-pointer"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
 

@@ -3,7 +3,6 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { DashboardProvider, useDashboard } from './context/DashboardContext';
 
 import { ThemeProvider } from './context/ThemeContext';
-import { AnnouncementBar } from './components/AnnouncementBar';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { NetworkDiagram } from './components/NetworkDiagram';
@@ -130,7 +129,6 @@ const RootApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-creamPaper dark:bg-creamPaper-dark text-bark dark:text-bark-dark font-sans transition-colors duration-200">
-      <AnnouncementBar />
       <Navbar onOpenAuth={(mode) => setAuthModalState({ isOpen: true, mode })} />
 
       <main>

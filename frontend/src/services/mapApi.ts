@@ -781,7 +781,7 @@ export function buildFallbackStations(district: DistrictSummary, stateCode = 'IN
 }
 
 class MapApiService {
-  private async fetchWithTimeout<T>(url: string, options: RequestInit = {}, timeoutMs = 3500): Promise<T> {
+  private async fetchWithTimeout<T>(url: string, options: RequestInit = {}, timeoutMs = 12000): Promise<T> {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeoutMs);
 
