@@ -8,7 +8,7 @@ import type {
 } from '../types/map';
 
 class MapApiService {
-  private async fetchWithTimeout<T>(url: string, options: RequestInit = {}, timeoutMs = 5000): Promise<T> {
+  private async fetchWithTimeout<T>(url: string, options: RequestInit = {}, timeoutMs = 12000): Promise<T> {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeoutMs);
     const token = typeof window !== 'undefined' ? localStorage.getItem('sg_access_token') : null;
