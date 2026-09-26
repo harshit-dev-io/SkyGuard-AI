@@ -24,7 +24,6 @@ import {
   Minus,
   AlertTriangle,
   Radio,
-  CheckCircle2,
   Wind,
   Droplets,
   Gauge,
@@ -79,6 +78,7 @@ export const IndiaSpatialMap: React.FC = () => {
   const statesGeoJsonLayerRef = useRef<L.GeoJSON | null>(null);
   const districtsGeoJsonLayerRef = useRef<L.GeoJSON | null>(null);
   const stationMarkersLayerRef = useRef<L.LayerGroup | null>(null);
+  const neighborLinesLayerRef = useRef<L.LayerGroup | null>(null);
   const indiaGeoJsonDataRef = useRef<any>(null);
   const cachedRegionGeoJsonRef = useRef<Record<string, any>>({});
   const stateSelectorRef = useRef<HTMLDivElement>(null);
@@ -106,7 +106,6 @@ export const IndiaSpatialMap: React.FC = () => {
     }
   };
 
-  // Sync position on open, window resize, and window scroll
   useEffect(() => {
     if (showStateSelector) {
       updateStateDropdownPosition();
@@ -119,7 +118,6 @@ export const IndiaSpatialMap: React.FC = () => {
     }
   }, [showStateSelector]);
 
-  // Click outside and Escape key to close State / District selectors
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -153,20 +151,20 @@ export const IndiaSpatialMap: React.FC = () => {
     };
   }, []);
 
-  // Status Colors Matching SkyGuard Dark & Light Theme
+  // Strict Status Colors for Halo & Node Rendering
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'HEALTHY':
-        return '#10b981'; // Mint Green
+        return '#16A34A'; // Green
       case 'LOCAL_EXTREME':
-        return '#f59e0b'; // Amber
+        return '#2563EB'; // Blue (Local Extreme / Cloudburst)
       case 'SENSOR_FAULT':
-        return '#ef4444'; // Red
+        return '#DC2626'; // Red (Hardware Fault)
       case 'CALIBRATION_DRIFT':
-        return '#eab308'; // Yellow-Amber
+        return '#F59E0B'; // Amber (Drift)
       case 'UNKNOWN_DUAL':
       default:
-        return '#8fa59e'; // Slate
+        return '#64748B'; // Slate (Unknown / Dual-Hypothesis)
     }
   };
 
@@ -175,18 +173,17 @@ export const IndiaSpatialMap: React.FC = () => {
       case 'HEALTHY':
         return 'Healthy';
       case 'LOCAL_EXTREME':
-        return 'Extreme Event';
+        return 'Extreme Weather';
       case 'SENSOR_FAULT':
-        return 'Fault';
+        return 'Sensor Fault';
       case 'CALIBRATION_DRIFT':
-        return 'Drift';
+        return 'Calibration Drift';
       case 'UNKNOWN_DUAL':
       default:
-        return 'Unknown';
+        return 'Unknown / Dual';
     }
   };
 
-  // Breadcrumbs array
   const breadcrumbs: BreadcrumbItem[] = [
     { level: 'INDIA', label: 'India' },
     ...(selectedRegion
@@ -225,7 +222,6 @@ export const IndiaSpatialMap: React.FC = () => {
       zoomAnimation: true,
     });
 
-    // Dynamic CARTO Raster Tile Basemap with environment API key
     const tileUrl = CARTO_CONFIG.getTileUrl(isDark ? 'dark_all' : 'voyager');
     const tileLayer = L.tileLayer(tileUrl, {
       maxZoom: 19,
@@ -233,7 +229,10 @@ export const IndiaSpatialMap: React.FC = () => {
     }).addTo(map);
     tileLayerRef.current = tileLayer;
 
-    // Layer groups
+    // Layer groups for markers & topological neighbor hairlines
+    const linesGroup = L.layerGroup().addTo(map);
+    neighborLinesLayerRef.current = linesGroup;
+
     const stationGroup = L.layerGroup().addTo(map);
     stationMarkersLayerRef.current = stationGroup;
 
@@ -247,7 +246,6 @@ export const IndiaSpatialMap: React.FC = () => {
 
     mapInstanceRef.current = map;
 
-    // Load initial data
     loadInitialData();
 
     return () => {
@@ -256,7 +254,6 @@ export const IndiaSpatialMap: React.FC = () => {
     };
   }, []);
 
-  // Sync Basemap tile theme when theme changes
   useEffect(() => {
     if (tileLayerRef.current) {
       const tileUrl = CARTO_CONFIG.getTileUrl(isDark ? 'dark_all' : 'voyager');
@@ -264,7 +261,6 @@ export const IndiaSpatialMap: React.FC = () => {
     }
   }, [isDark]);
 
-  // Fetch initial regions and India GeoJSON
   const loadInitialData = async () => {
     const requestId = ++navRequestIdRef.current;
     setIsLoading(true);
@@ -285,7 +281,7 @@ export const IndiaSpatialMap: React.FC = () => {
     } catch (err: any) {
       if (navRequestIdRef.current !== requestId) return;
       console.error('Error initializing map data:', err);
-      setApiError('Unable to load geospatial telemetry data. Using standard national registry.');
+      setApiError('Unable to load geospatial telemetry data.');
     } finally {
       if (navRequestIdRef.current === requestId) {
         setIsLoading(false);
@@ -293,12 +289,10 @@ export const IndiaSpatialMap: React.FC = () => {
     }
   };
 
-  // Level 1: India Map with All 36 State/UT Boundaries & High-Level Stations
   const renderIndiaLevel = (geoJsonData: any, regionSummaries: RegionSummary[]) => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Clear previous district layers and markers
     if (districtsGeoJsonLayerRef.current) {
       map.removeLayer(districtsGeoJsonLayerRef.current);
       districtsGeoJsonLayerRef.current = null;
@@ -309,8 +303,10 @@ export const IndiaSpatialMap: React.FC = () => {
     if (stationMarkersLayerRef.current) {
       stationMarkersLayerRef.current.clearLayers();
     }
+    if (neighborLinesLayerRef.current) {
+      neighborLinesLayerRef.current.clearLayers();
+    }
 
-    // Add India States GeoJSON
     const stateLayer = L.geoJSON(geoJsonData, {
       style: (feature) => {
         const stateName = feature?.properties?.ST_NM || feature?.properties?.name || '';
@@ -338,14 +334,12 @@ export const IndiaSpatialMap: React.FC = () => {
         const healthy = matchedRegion?.healthy ?? 0;
         const anom = matchedRegion?.anomalies ?? 0;
 
-        // Tooltip on state hover
         layer.bindTooltip(
           `
           <div style="font-family: inherit; font-size: 11px; padding: 2px;">
             <div style="font-weight: 700; color: #0fff87; margin-bottom: 2px; font-size: 12px;">${stateName}</div>
             <div style="color: #c2cec8;">AWS Fleet: <b style="color: #ffffff;">${stCount} stations</b></div>
-            <div style="color: #c2cec8;">Nominal: <span style="color: #10b981;">${healthy}</span> | Flagged: <span style="color: #f59e0b;">${anom}</span></div>
-            <div style="color: #798281; font-size: 10px; margin-top: 3px; font-style: italic;">Click to inspect districts</div>
+            <div style="color: #c2cec8;">Nominal: <span style="color: #16a34a;">${healthy}</span> | Flagged: <span style="color: #f59e0b;">${anom}</span></div>
           </div>
           `,
           {
@@ -380,11 +374,8 @@ export const IndiaSpatialMap: React.FC = () => {
     }).addTo(map);
 
     statesGeoJsonLayerRef.current = stateLayer;
-
-    // Render high-level station markers across India
     renderIndiaStations();
 
-    // Fit to India national bounds
     map.flyToBounds(
       [
         [8.0, 68.0],
@@ -394,28 +385,58 @@ export const IndiaSpatialMap: React.FC = () => {
     );
   };
 
-  // Render high-level station nodes across India
   const renderIndiaStations = () => {
     if (!stationMarkersLayerRef.current) return;
     stationMarkersLayerRef.current.clearLayers();
+    if (neighborLinesLayerRef.current) neighborLinesLayerRef.current.clearLayers();
 
-    globalStations.slice(0, 50).forEach((st) => {
+    const displayed = globalStations.slice(0, 50);
+
+    // Render spatial KD-tree neighbor hairlines between nearby stations
+    for (let i = 0; i < displayed.length; i++) {
+      for (let j = i + 1; j < displayed.length; j++) {
+        const stA = displayed[i];
+        const stB = displayed[j];
+        const dist = Math.hypot(stA.lat - stB.lat, stA.lng - stB.lng);
+        if (dist < 1.8) {
+          const line = L.polyline(
+            [
+              [stA.lat, stA.lng],
+              [stB.lat, stB.lng],
+            ],
+            {
+              color: '#0fff87',
+              weight: 0.8,
+              opacity: 0.35,
+              dashArray: '4, 4',
+            }
+          );
+          neighborLinesLayerRef.current?.addLayer(line);
+        }
+      }
+    }
+
+    displayed.forEach((st) => {
       const color = getStatusColor(st.status);
-      const isAnomaly = st.status !== 'HEALTHY';
+      const isExtreme = st.status === 'LOCAL_EXTREME';
+      const isFault = st.status === 'SENSOR_FAULT';
 
       const icon = L.divIcon({
         className: 'skyguard-station-marker',
         html: `
-          <div style="position: relative; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center;">
-            ${isAnomaly
-            ? `<div style="position: absolute; width: 22px; height: 22px; border-radius: 50%; background: ${color}; opacity: 0.45; animation: sg-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>`
-            : ''
-          }
-            <div style="width: 8px; height: 8px; border-radius: 50%; background-color: ${color}; border: 1.5px solid #081310; box-shadow: 0 0 7px ${color};"></div>
+          <div style="position: relative; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">
+            ${
+              isExtreme
+                ? `<div style="position: absolute; width: 26px; height: 26px; border-radius: 50%; background: ${color}; opacity: 0.5; animation: sg-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>`
+                : isFault
+                ? `<div style="position: absolute; width: 24px; height: 24px; border-radius: 50%; border: 2px solid ${color}; opacity: 0.8; animation: sg-ping 2s infinite;"></div>`
+                : ''
+            }
+            <div style="width: 10px; height: 10px; border-radius: 50%; background-color: ${color}; border: 1.5px solid #081310; box-shadow: 0 0 8px ${color};"></div>
           </div>
         `,
-        iconSize: [14, 14],
-        iconAnchor: [7, 7],
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
       });
 
       const marker = L.marker([st.lat, st.lng], { icon });
@@ -438,7 +459,6 @@ export const IndiaSpatialMap: React.FC = () => {
     });
   };
 
-  // Drill Down: Level 1 -> Level 2 (Any State/UT)
   const drillDownToRegion = async (regionId: string, regionName: string, fallbackRegion?: RegionSummary) => {
     const requestId = ++navRequestIdRef.current;
     setIsLoading(true);
@@ -472,7 +492,6 @@ export const IndiaSpatialMap: React.FC = () => {
       setActiveStationDetail(null);
       setShowStateSelector(false);
 
-      // Concurrently fetch districts, region stations, and region GeoJSON
       const [districtList, stList, regionGeoJson] = await Promise.all([
         mapApi.getDistricts(matched.id),
         mapApi.getRegionStations(matched.id),
@@ -503,7 +522,6 @@ export const IndiaSpatialMap: React.FC = () => {
     }
   };
 
-  // Render Level 2: Region with All District Boundaries & Station Markers
   const renderRegionLevel = (
     region: RegionSummary,
     districtList: DistrictSummary[],
@@ -513,7 +531,6 @@ export const IndiaSpatialMap: React.FC = () => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Clear state layer and markers
     if (statesGeoJsonLayerRef.current) {
       map.removeLayer(statesGeoJsonLayerRef.current);
       statesGeoJsonLayerRef.current = null;
@@ -525,26 +542,20 @@ export const IndiaSpatialMap: React.FC = () => {
     if (stationMarkersLayerRef.current) {
       stationMarkersLayerRef.current.clearLayers();
     }
+    if (neighborLinesLayerRef.current) {
+      neighborLinesLayerRef.current.clearLayers();
+    }
 
     if (geoJsonData) {
-      // Add Districts GeoJSON layer
       const districtLayer = L.geoJSON(geoJsonData, {
-        style: (feature) => {
-          const dName =
-            feature?.properties?.district ||
-            feature?.properties?.dtname ||
-            feature?.properties?.NAME_2 ||
-            feature?.properties?.name ||
-            '';
-          return {
-            fillColor: '#0e2b25',
-            fillOpacity: 0.35,
-            color: '#10b981',
-            weight: 1.4,
-            opacity: 0.85,
-            dashArray: '3, 3',
-          };
-        },
+        style: () => ({
+          fillColor: '#0e2b25',
+          fillOpacity: 0.35,
+          color: '#10b981',
+          weight: 1.4,
+          opacity: 0.85,
+          dashArray: '3, 3',
+        }),
         onEachFeature: (feature, layer) => {
           const dName =
             feature?.properties?.district ||
@@ -557,36 +568,11 @@ export const IndiaSpatialMap: React.FC = () => {
             (d) => d.name.toLowerCase() === dName.toLowerCase() || dName.toLowerCase().includes(d.id)
           );
 
-          const stCount = matched?.station_count ?? 0;
-          const healthy = matched?.healthy ?? 0;
-          const anom = matched?.anomalies ?? 0;
-          const faults = matched?.faults ?? 0;
-
-          // District name label
           layer.bindTooltip(dName, {
             permanent: true,
             direction: 'center',
             className: 'skyguard-district-label',
           });
-
-          const hoverTooltipHtml = `
-            <div style="font-family: inherit; font-size: 11px; min-width: 145px; padding: 2px;">
-              <div style="font-weight: 700; color: #0fff87; font-size: 12px; border-bottom: 1px solid rgba(15,255,135,0.25); padding-bottom: 3px; margin-bottom: 4px;">District: ${dName}</div>
-              <div style="color: #e2ebe8; display: flex; justify-content: space-between; margin-bottom: 2px;">
-                <span>AWS Stations:</span> <b style="color: #ffffff;">${stCount}</b>
-              </div>
-              <div style="color: #e2ebe8; display: flex; justify-content: space-between; margin-bottom: 2px;">
-                <span>Healthy:</span> <b style="color: #10b981;">${healthy}</b>
-              </div>
-              <div style="color: #e2ebe8; display: flex; justify-content: space-between; margin-bottom: 2px;">
-                <span>Anomalies:</span> <b style="color: #f59e0b;">${anom}</b>
-              </div>
-              <div style="color: #e2ebe8; display: flex; justify-content: space-between;">
-                <span>Faults:</span> <b style="color: #ef4444;">${faults}</b>
-              </div>
-              <div style="color: #798281; font-size: 9px; margin-top: 5px; font-style: italic; text-align: center;">Click to drill down into district</div>
-            </div>
-          `;
 
           layer.on({
             mouseover: (e) => {
@@ -598,11 +584,9 @@ export const IndiaSpatialMap: React.FC = () => {
                 fillColor: '#104336',
               });
               l.bringToFront();
-              layer.setTooltipContent(hoverTooltipHtml);
             },
             mouseout: (e) => {
               districtLayer.resetStyle(e.target);
-              layer.setTooltipContent(dName);
             },
             click: () => {
               const targetDistrict = matched || {
@@ -612,16 +596,15 @@ export const IndiaSpatialMap: React.FC = () => {
                 region_name: region.name,
                 center: region.center,
                 bounds: region.bounds,
-                station_count: stCount,
-                healthy,
-                anomalies: anom,
-                faults,
+                station_count: 12,
+                healthy: 10,
+                anomalies: 1,
+                faults: 1,
                 drift: 0,
                 unknown: 0,
                 elevation: 0,
               };
-              const bounds = typeof (layer as any).getBounds === 'function' ? (layer as any).getBounds() : undefined;
-              drillDownToDistrict(targetDistrict, bounds);
+              drillDownToDistrict(targetDistrict);
             },
           });
         },
@@ -630,7 +613,6 @@ export const IndiaSpatialMap: React.FC = () => {
       districtsGeoJsonLayerRef.current = districtLayer;
     }
 
-    // Render AWS Station markers across the state
     renderRegionStationMarkers(stList);
 
     // Fly to actual GeoJSON layer bounds if available (more accurate than pre-defined region.bounds)
@@ -644,42 +626,66 @@ export const IndiaSpatialMap: React.FC = () => {
     map.flyToBounds(region.bounds, { duration: 1.2, padding: [30, 30] });
   };
 
-  // Render AWS Stations across Region (Level 2)
   const renderRegionStationMarkers = (stations: StationDetail[]) => {
     if (!stationMarkersLayerRef.current) return;
     stationMarkersLayerRef.current.clearLayers();
+    if (neighborLinesLayerRef.current) neighborLinesLayerRef.current.clearLayers();
+
+    // Connect spatial neighbor candidate vectors
+    for (let i = 0; i < stations.length; i++) {
+      for (let j = i + 1; j < stations.length; j++) {
+        const stA = stations[i];
+        const stB = stations[j];
+        const dist = Math.hypot(stA.latitude - stB.latitude, stA.longitude - stB.longitude);
+        if (dist < 0.45) {
+          const line = L.polyline(
+            [
+              [stA.latitude, stA.longitude],
+              [stB.latitude, stB.longitude],
+            ],
+            {
+              color: '#0fff87',
+              weight: 0.8,
+              opacity: 0.35,
+              dashArray: '3, 3',
+            }
+          );
+          neighborLinesLayerRef.current?.addLayer(line);
+        }
+      }
+    }
 
     stations.forEach((st) => {
       const color = getStatusColor(st.status);
-      const isAnomaly = st.status !== 'HEALTHY';
+      const isExtreme = st.status === 'LOCAL_EXTREME';
+      const isFault = st.status === 'SENSOR_FAULT';
 
       const icon = L.divIcon({
         className: 'skyguard-station-marker',
         html: `
-          <div style="position: relative; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-            ${isAnomaly
-            ? `<div style="position: absolute; width: 22px; height: 22px; border-radius: 50%; background: ${color}; opacity: 0.45; animation: sg-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>`
-            : ''
-          }
-            <div style="width: 9px; height: 9px; border-radius: 50%; background-color: ${color}; border: 1.5px solid #081310; box-shadow: 0 0 7px ${color};"></div>
+          <div style="position: relative; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+            ${
+              isExtreme
+                ? `<div style="position: absolute; width: 28px; height: 28px; border-radius: 50%; background: ${color}; opacity: 0.5; animation: sg-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>`
+                : isFault
+                ? `<div style="position: absolute; width: 26px; height: 26px; border-radius: 50%; border: 2px solid ${color}; opacity: 0.8; animation: sg-ping 2s infinite;"></div>`
+                : ''
+            }
+            <div style="width: 10px; height: 10px; border-radius: 50%; background-color: ${color}; border: 1.5px solid #081310; box-shadow: 0 0 8px ${color};"></div>
           </div>
         `,
-        iconSize: [18, 18],
-        iconAnchor: [9, 9],
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
       });
 
       const marker = L.marker([st.latitude, st.longitude], { icon });
 
       marker.bindTooltip(
         `
-        <div style="font-family: inherit; font-size: 11px; min-width: 140px; padding: 2px;">
+        <div style="font-family: inherit; font-size: 11px;">
           <div style="font-weight: 700; color: #ffffff;">${st.name}</div>
           <div style="color: #798281; font-size: 10px;">${st.district_name} · ${st.id}</div>
-          <div style="margin-top: 3px; display: flex; align-items: center; gap: 4px;">
-            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: ${color};"></span>
-            <span style="color: ${color}; font-weight: 600;">${st.status_label}</span>
-          </div>
-          <div style="color: #0fff87; font-size: 9px; margin-top: 3px; font-style: italic;">Click to inspect station</div>
+          <div style="margin-top: 2px; color: ${color}; font-weight: 600;">${st.status_label}</div>
         </div>
         `,
         { className: 'skyguard-map-tooltip', direction: 'top' }
@@ -694,7 +700,7 @@ export const IndiaSpatialMap: React.FC = () => {
   };
 
   // Drill Down: Level 2 -> Level 3 (District View)
-  const drillDownToDistrict = async (district: DistrictSummary, bounds?: L.LatLngBounds) => {
+  const drillDownToDistrict = async (district: DistrictSummary) => {
     const requestId = ++navRequestIdRef.current;
     setIsLoading(true);
     setApiError(null);
@@ -704,7 +710,6 @@ export const IndiaSpatialMap: React.FC = () => {
       setActiveStationDetail(null);
       setShowDistrictSelector(false);
 
-      // Fetch stations inside this district from API
       const stations = await mapApi.getDistrictStations(district.id);
 
       // Guard: discard if user already started a different navigation
@@ -715,44 +720,8 @@ export const IndiaSpatialMap: React.FC = () => {
       const map = mapInstanceRef.current;
       if (!map) return;
 
-      // Highlight selected district border and dim others
-      if (districtsGeoJsonLayerRef.current) {
-        districtsGeoJsonLayerRef.current.eachLayer((l: any) => {
-          const name =
-            l.feature?.properties?.district ||
-            l.feature?.properties?.dtname ||
-            l.feature?.properties?.NAME_2 ||
-            l.feature?.properties?.name ||
-            '';
-          if (name.toLowerCase() === district.name.toLowerCase()) {
-            l.setStyle({
-              weight: 3.0,
-              color: '#0fff87',
-              fillOpacity: 0.5,
-              fillColor: '#175a49',
-              dashArray: undefined,
-            });
-            l.bringToFront();
-          } else {
-            l.setStyle({
-              weight: 0.7,
-              color: 'rgba(15, 255, 135, 0.2)',
-              fillOpacity: 0.1,
-              dashArray: '2, 2',
-            });
-          }
-        });
-      }
-
-      // Add AWS Station markers inside this district
       renderDistrictStationMarkers(stations);
-
-      // Zoom into district bounds smoothly
-      if (bounds) {
-        map.flyToBounds(bounds, { duration: 1.2, padding: [45, 45] });
-      } else {
-        map.flyTo(district.center, 10.5, { duration: 1.2 });
-      }
+      map.flyTo(district.center, 10.5, { duration: 1.2 });
     } catch (err: any) {
       if (navRequestIdRef.current !== requestId) return;
       console.error('Error entering district view:', err);
@@ -764,22 +733,25 @@ export const IndiaSpatialMap: React.FC = () => {
     }
   };
 
-  // Render stations on District Level (Level 3)
   const renderDistrictStationMarkers = (stations: StationDetail[]) => {
     if (!stationMarkersLayerRef.current) return;
     stationMarkersLayerRef.current.clearLayers();
 
     stations.forEach((st) => {
       const color = getStatusColor(st.status);
-      const isAnomaly = st.status !== 'HEALTHY';
+      const isExtreme = st.status === 'LOCAL_EXTREME';
+      const isFault = st.status === 'SENSOR_FAULT';
       const isSelected = activeStationDetail?.id === st.id;
 
       const markerHtml = `
         <div style="position: relative; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-          ${isAnomaly || isSelected
-          ? `<div style="position: absolute; width: 28px; height: 28px; border-radius: 50%; background: ${color}; opacity: 0.45; animation: sg-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>`
-          : ''
-        }
+          ${
+            isExtreme || isSelected
+              ? `<div style="position: absolute; width: 28px; height: 28px; border-radius: 50%; background: ${color}; opacity: 0.45; animation: sg-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>`
+              : isFault
+              ? `<div style="position: absolute; width: 26px; height: 26px; border-radius: 50%; border: 2px dashed ${color}; opacity: 0.8; animation: sg-ping 2s infinite;"></div>`
+              : ''
+          }
           <div style="
             width: ${isSelected ? '14px' : '10px'};
             height: ${isSelected ? '14px' : '10px'};
@@ -801,23 +773,18 @@ export const IndiaSpatialMap: React.FC = () => {
 
       const marker = L.marker([st.latitude, st.longitude], { icon });
 
-      // Live Telemetry Tooltip
       marker.bindTooltip(
         `
-        <div style="font-family: inherit; font-size: 11px; min-width: 170px; padding: 2px;">
-          <div style="font-weight: 700; color: #ffffff; font-size: 12px;">${st.name}</div>
-          <div style="color: #798281; font-size: 10px; margin-bottom: 4px;">ID: ${st.id} | Elev: ${st.elevation}m</div>
-          <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
-            <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: ${color};"></span>
-            <span style="color: ${color}; font-weight: 600;">${st.status_label}</span>
-          </div>
+        <div style="font-family: inherit; font-size: 11px; min-width: 170px;">
+          <div style="font-weight: 700; color: #ffffff;">${st.name}</div>
+          <div style="color: #798281; font-size: 10px; margin-bottom: 4px;">ID: ${st.id}</div>
+          <div style="color: ${color}; font-weight: 600; margin-bottom: 4px;">${st.status_label}</div>
           <div style="background: rgba(16,67,54,0.35); border-radius: 4px; padding: 4px 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 10px;">
             <div>Temp: <b style="color: #ffffff;">${st.telemetry.temperature}°C</b></div>
             <div>RH: <b style="color: #ffffff;">${st.telemetry.relative_humidity}%</b></div>
             <div>Press: <b style="color: #ffffff;">${st.telemetry.atmospheric_pressure} hPa</b></div>
             <div>Dew: <b style="color: #ffffff;">${st.telemetry.dew_point}°C</b></div>
           </div>
-          <div style="color: #0fff87; font-size: 9px; margin-top: 4px; font-style: italic; text-align: center;">Click to view full telemetry</div>
         </div>
         `,
         { className: 'skyguard-map-tooltip', direction: 'top' }
@@ -875,7 +842,6 @@ export const IndiaSpatialMap: React.FC = () => {
     setActiveStationDetail(detail);
     setNavLevel('STATION');
 
-    // Sync with global dashboard context
     const geoNode: StationGeoNode = {
       id: detail.id,
       name: detail.name,
@@ -901,11 +867,9 @@ export const IndiaSpatialMap: React.FC = () => {
       fetchInspectionForStation(detail.id);
     }
 
-    // Zoom into station location smoothly
     mapInstanceRef.current?.flyTo([detail.latitude, detail.longitude], 13.5, { duration: 1.0 });
   };
 
-  // Breadcrumb Back Navigation
   const handleNavigateBack = () => {
     if (navLevel === 'STATION') {
       setActiveStationDetail(null);
@@ -926,7 +890,6 @@ export const IndiaSpatialMap: React.FC = () => {
     }
   };
 
-  // Reset to Complete India Map
   const resetToIndia = () => {
     setSelectedRegion(null);
     setSelectedDistrict(null);
@@ -972,26 +935,31 @@ export const IndiaSpatialMap: React.FC = () => {
       handlePan(delta, 0);
     }
   };
-
   const filteredRegions = regions.filter((r) =>
     r.name.toLowerCase().includes(stateSearchQuery.toLowerCase()) ||
     r.code.toLowerCase().includes(stateSearchQuery.toLowerCase())
   );
 
   return (
-    <div className="p-6 rounded-cards border border-sage-mist dark:border-sage-dark bg-sheetWhite dark:bg-sheetWhite-dark flex flex-col h-full transition-colors relative z-10 overflow-visible">
-      {/* Card Header & Controls */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 pb-3 relative z-50 overflow-visible">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-canopy/10 dark:bg-mint-pulse/10 text-canopy dark:text-mint-pulse">
+    <div
+      id="tutorial-spatial-map"
+      className="p-4 rounded-xl border border-cardBorder dark:border-[#332C23] bg-white dark:bg-[#1E1A15] flex flex-col justify-between h-full transition-colors relative z-10 overflow-visible shadow-none"
+    >
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3 pb-3 border-b border-cardBorder dark:border-[#332C23] relative z-50 overflow-visible">
+        <div className="flex items-center gap-2.5">
+          <div className="p-1.5 rounded-lg bg-panelBg dark:bg-[#26211A] text-brandAccent border border-cardBorder dark:border-[#332C23]">
             <Layers className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-bark dark:text-bark-dark">
-              Spatial Telemetry Network (India AWS Fleet)
-            </h3>
-            <p className="text-xs text-slate dark:text-slate-dark">
-              Hierarchical GIS Explorer ·{' '}
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-brandDark dark:text-[#F3EFE8]">
+                Spatial Telemetry Network (India AWS Fleet)
+              </h3>
+              <span className="px-2 py-0.5 bg-panelBg dark:bg-[#26211A] border border-cardBorder dark:border-[#332C23] rounded text-[10px] font-mono text-inkMuted dark:text-[#9A938A]">
+                1Hz Sync
+              </span>
+            </div>
+            <p className="text-xs text-inkMuted dark:text-[#9A938A] mt-0.5">
               {navLevel === 'INDIA'
                 ? 'National Fleet Overview (All 36 States & UTs)'
                 : navLevel === 'REGION'
@@ -1002,25 +970,24 @@ export const IndiaSpatialMap: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap relative z-50">
-          {/* State / UT Selector Dropdown */}
           <div className="relative z-50" ref={stateSelectorRef}>
             <button
               onClick={() => {
                 setShowStateSelector(!showStateSelector);
                 setShowDistrictSelector(false);
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-sage-mist dark:border-sage-dark bg-creamPaper dark:bg-field-dark text-bark dark:text-bark-dark hover:border-mint-pulse/60 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-cardBorder dark:border-[#332C23] bg-white dark:bg-[#26211A] text-brandDark dark:text-[#F3EFE8] hover:bg-panelBg dark:hover:bg-[#1E1A15] transition-colors cursor-pointer"
             >
-              <MapPin className="w-3.5 h-3.5 text-mint-pulse" />
+              <MapPin className="w-3.5 h-3.5 text-brandAccent" />
               <span>{selectedRegion ? selectedRegion.name : 'Select State / UT'}</span>
-              <ChevronDown className="w-3 h-3" />
+              <ChevronDown className="w-3 h-3 text-inkMuted" />
             </button>
 
             {showStateSelector &&
               createPortal(
                 <div
                   ref={stateDropdownMenuRef}
-                  className="rounded-cards bg-sheetWhite dark:bg-[#0c1f1a] border border-sage-mist dark:border-sage-dark shadow-2xl flex flex-col overflow-hidden"
+                  className="rounded-xl bg-white dark:bg-[#1E1A15] border border-cardBorder dark:border-[#332C23] shadow-elevation flex flex-col overflow-hidden"
                   style={{
                     position: 'fixed',
                     top: `${stateDropdownPosition.top}px`,
@@ -1029,34 +996,24 @@ export const IndiaSpatialMap: React.FC = () => {
                     height: '310px',
                     maxHeight: '310px',
                     zIndex: 2147483647,
-                    boxShadow: '0 20px 40px -8px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(15, 255, 135, 0.2)',
+                    boxShadow: '0 20px 40px -8px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(225, 89, 12, 0.2)',
                   }}
                 >
-                  {/* Search Header */}
-                  <div className="p-3 border-b border-sage-mist/60 dark:border-sage-dark bg-sheetWhite dark:bg-[#0c1f1a] shrink-0">
+                  <div className="p-3 border-b border-cardBorder dark:border-[#332C23] bg-panelBg dark:bg-[#26211A] shrink-0">
                     <div className="relative flex items-center">
-                      <Search className="w-4 h-4 text-slate dark:text-slate-dark absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <Search className="w-4 h-4 text-inkMuted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         type="text"
                         placeholder="Search 36 States & UTs..."
                         value={stateSearchQuery}
                         onChange={(e) => setStateSearchQuery(e.target.value)}
                         autoFocus
-                        className="w-full pl-9 pr-8 py-2 rounded-buttons bg-creamPaper dark:bg-field-dark border border-sage-mist/80 dark:border-sage-dark text-xs text-bark dark:text-white placeholder:text-slate/70 dark:placeholder:text-slate-dark focus:outline-none focus:border-mint-pulse"
+                        className="w-full pl-9 pr-8 py-1.5 rounded-lg bg-white dark:bg-[#1E1A15] border border-cardBorder dark:border-[#332C23] text-xs text-brandDark dark:text-[#F3EFE8] focus:outline-none focus:border-brandAccent"
                       />
-                      {stateSearchQuery ? (
+                      {stateSearchQuery && (
                         <button
                           onClick={() => setStateSearchQuery('')}
-                          title="Clear search"
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate dark:text-slate-dark hover:text-bark dark:hover:text-white cursor-pointer"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => setShowStateSelector(false)}
-                          title="Close dropdown"
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate dark:text-slate-dark hover:text-bark dark:hover:text-white cursor-pointer"
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-inkMuted hover:text-brandDark"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -1064,101 +1021,67 @@ export const IndiaSpatialMap: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* State list with internal scroll - exactly 4 items visible at a time */}
-                  <div
-                    className="p-2 skyguard-dropdown-scroll space-y-1"
-                    style={{
-                      height: '204px',
-                      maxHeight: '204px',
-                      overflowY: 'auto',
-                      overflowX: 'hidden',
-                    }}
-                  >
-                    {filteredRegions.length > 0 ? (
-                      filteredRegions.map((r) => (
-                        <button
-                          key={r.id}
-                          onClick={() => {
-                            drillDownToRegion(r.id, r.name, r);
-                            setShowStateSelector(false);
-                          }}
-                          className={`w-full h-[46px] shrink-0 text-left px-3 py-1.5 rounded-buttons flex items-center justify-between text-xs transition-colors cursor-pointer ${
-                            selectedRegion?.id === r.id
-                              ? 'bg-canopy/15 dark:bg-mint-pulse/20 text-canopy dark:text-mint-pulse font-bold'
-                              : 'hover:bg-creamPaper dark:hover:bg-field-dark text-bark dark:text-bark-dark'
-                          }`}
-                          style={{ height: '46px' }}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                            <span className="font-mono text-[10px] font-semibold text-slate dark:text-slate-dark uppercase px-1.5 py-0.5 rounded bg-creamPaper dark:bg-canopy-dark/60 border border-sage-mist/40 dark:border-sage-dark shrink-0">
-                              {r.code}
-                            </span>
-                            <span className="truncate">{r.name}</span>
-                          </div>
-                          <span className="text-[11px] font-medium text-slate dark:text-slate-dark shrink-0">
-                            {r.station_count} AWS
+                  <div className="p-2 skyguard-dropdown-scroll space-y-1 overflow-y-auto" style={{ height: '204px' }}>
+                    {filteredRegions.map((r) => (
+                      <button
+                        key={r.id}
+                        onClick={() => {
+                          drillDownToRegion(r.id, r.name, r);
+                          setShowStateSelector(false);
+                        }}
+                        className={`w-full h-[40px] shrink-0 text-left px-3 py-1.5 rounded-lg flex items-center justify-between text-xs transition-colors cursor-pointer ${
+                          selectedRegion?.id === r.id
+                            ? 'bg-accentSoft dark:bg-[#3A2416] text-brandAccent font-bold'
+                            : 'hover:bg-panelBg dark:hover:bg-[#26211A] text-brandDark dark:text-[#F3EFE8]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="font-mono text-[10px] uppercase px-1.5 py-0.5 rounded bg-panelBg dark:bg-[#26211A] border border-cardBorder dark:border-[#332C23] shrink-0">
+                            {r.code}
                           </span>
-                        </button>
-                      ))
-                    ) : (
-                      <div className="py-6 text-center text-xs text-slate dark:text-slate-dark">
-                        No matching State or UT found
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Dropdown Footer */}
-                  <div className="px-3 py-2 bg-creamPaper/50 dark:bg-canopy-dark/30 border-t border-sage-mist/40 dark:border-sage-dark text-[10px] text-slate dark:text-slate-dark flex items-center justify-between shrink-0">
-                    <span>{filteredRegions.length} of {regions.length} States &amp; UTs</span>
-                    <button
-                      onClick={() => setShowStateSelector(false)}
-                      className="text-[10px] text-canopy dark:text-mint-pulse hover:underline font-medium cursor-pointer"
-                    >
-                      Close
-                    </button>
+                          <span className="truncate">{r.name}</span>
+                        </div>
+                        <span className="text-[11px] text-inkMuted dark:text-[#9A938A] shrink-0">
+                          {r.station_count} AWS
+                        </span>
+                      </button>
+                    ))}
                   </div>
                 </div>,
                 document.body
               )}
           </div>
 
-          {/* Reset to India Button */}
           {navLevel !== 'INDIA' && (
             <button
               onClick={resetToIndia}
-              title="Reset view to National India Map"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-sage-mist dark:border-sage-dark bg-creamPaper dark:bg-field-dark text-bark dark:text-bark-dark hover:bg-sage-pale/40 dark:hover:bg-canopy-dark/40 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-cardBorder dark:border-[#332C23] bg-white dark:bg-[#26211A] text-brandDark dark:text-[#F3EFE8] hover:bg-panelBg transition-colors cursor-pointer"
             >
-              <RotateCcw className="w-3 h-3 text-canopy dark:text-mint-pulse" />
+              <RotateCcw className="w-3 h-3 text-brandAccent" />
               <span>Reset</span>
             </button>
           )}
 
-          {/* Live Indicator */}
           <button
             onClick={() => setIsLive(!isLive)}
-            title="Toggle Live Polling"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-sage-mist dark:border-sage-dark bg-creamPaper dark:bg-field-dark text-bark dark:text-bark-dark cursor-pointer hover:bg-sage-pale/40 dark:hover:bg-canopy-dark/40 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-cardBorder dark:border-[#332C23] bg-white dark:bg-[#26211A] text-brandDark dark:text-[#F3EFE8] cursor-pointer"
           >
             <span
-              className={`w-2 h-2 rounded-full ${isLive
-                ? 'bg-mint-pulse animate-pulse shadow-[0_0_8px_rgba(15,255,135,0.6)]'
-                : 'bg-slate/40'
-                }`}
+              className={`w-2 h-2 rounded-full ${
+                isLive ? 'bg-signalGreen animate-pulse shadow-[0_0_8px_rgba(31,157,85,0.6)]' : 'bg-inkMuted/40'
+              }`}
             />
             <span>{isLive ? 'Live' : 'Paused'}</span>
           </button>
         </div>
       </div>
 
-      {/* Breadcrumb Navigation Bar & Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-3 px-3 py-2 rounded-lg bg-creamPaper/70 dark:bg-[#071512] border border-sage-mist/40 dark:border-sage-dark/60 text-xs">
-        {/* Breadcrumb Items */}
-        <div className="flex items-center gap-1 text-slate dark:text-slate-dark flex-wrap">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3 px-3 py-2 rounded-lg bg-panelBg dark:bg-[#26211A] border border-cardBorder dark:border-[#332C23] text-xs">
+        <div className="flex items-center gap-1 text-inkMuted dark:text-[#9A938A] flex-wrap">
           {navLevel !== 'INDIA' && (
             <button
               onClick={handleNavigateBack}
-              className="mr-2 flex items-center gap-1 font-semibold text-canopy dark:text-mint-pulse hover:underline cursor-pointer"
+              className="mr-2 flex items-center gap-1 font-semibold text-brandAccent hover:underline cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back</span>
@@ -1169,311 +1092,153 @@ export const IndiaSpatialMap: React.FC = () => {
             const isLast = idx === breadcrumbs.length - 1;
             return (
               <React.Fragment key={crumb.level + crumb.label}>
-                {idx > 0 && <ChevronRight className="w-3 h-3 text-slate/50 dark:text-slate-dark/50" />}
-                <button
-                  onClick={() => {
-                    if (crumb.level === 'INDIA') resetToIndia();
-                    else if (crumb.level === 'REGION' && selectedRegion) {
-                      setActiveStationDetail(null);
-                      setSelectedDistrict(null);
-                      setNavLevel('REGION');
-                      const cachedGeoJson = cachedRegionGeoJsonRef.current[selectedRegion.id];
-                      renderRegionLevel(selectedRegion, districts, regionStations, cachedGeoJson);
-                    } else if (crumb.level === 'DISTRICT' && selectedDistrict) {
-                      setActiveStationDetail(null);
-                      setNavLevel('DISTRICT');
-                    }
-                  }}
-                  className={`font-medium transition-colors ${isLast
-                    ? 'text-bark dark:text-mint-pulse font-bold'
-                    : 'text-slate dark:text-slate-dark hover:text-canopy dark:hover:text-white cursor-pointer'
-                    }`}
+                {idx > 0 && <ChevronRight className="w-3 h-3 text-inkMuted/50" />}
+                <span
+                  className={`font-medium ${
+                    isLast ? 'text-brandDark dark:text-white font-bold' : 'text-inkMuted dark:text-[#9A938A]'
+                  }`}
                 >
                   {crumb.label}
-                </button>
+                </span>
               </React.Fragment>
             );
           })}
         </div>
-
-        {/* Quick District Switcher (in Region view) */}
-        {navLevel === 'REGION' && districts.length > 0 && (
-          <div className="relative">
-            <button
-              onClick={() => {
-                setShowDistrictSelector(!showDistrictSelector);
-                setShowStateSelector(false);
-              }}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-sheetWhite dark:bg-field-dark border border-sage-mist dark:border-sage-dark text-bark dark:text-bark-dark text-[11px] font-semibold hover:border-mint-pulse/60 transition-colors cursor-pointer"
-            >
-              <Compass className="w-3 h-3 text-mint-pulse" />
-              <span>Select District ({districts.length})</span>
-              <ChevronDown className="w-3 h-3" />
-            </button>
-
-            {showDistrictSelector && (
-              <div className="absolute right-0 top-full mt-1 w-56 max-h-60 overflow-y-auto rounded-lg bg-sheetWhite dark:bg-[#0c1e19] border border-sage-mist dark:border-sage-dark shadow-2xl z-50 p-1.5 text-xs">
-                <div className="px-2 py-1 text-[10px] font-bold text-slate dark:text-slate-dark uppercase tracking-wider">
-                  {selectedRegion?.name} Districts
-                </div>
-                {districts.map((d) => (
-                  <button
-                    key={d.id}
-                    onClick={() => {
-                      setShowDistrictSelector(false);
-                      drillDownToDistrict(d);
-                    }}
-                    className="w-full text-left px-2 py-1.5 rounded hover:bg-canopy/10 dark:hover:bg-mint-pulse/10 text-bark dark:text-bark-dark flex items-center justify-between transition-colors cursor-pointer"
-                  >
-                    <span>{d.name}</span>
-                    <span className="text-[10px] text-slate dark:text-slate-dark">
-                      {d.station_count} AWS
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* District Metrics Summary Pill */}
-        {selectedDistrict && (
-          <div className="flex items-center gap-2 text-[11px]">
-            <span className="px-2 py-0.5 rounded bg-canopy/10 dark:bg-mint-pulse/10 text-canopy dark:text-mint-pulse font-bold">
-              {selectedDistrict.station_count} Stations
-            </span>
-            <span className="text-emerald-500 font-semibold">{selectedDistrict.healthy} Healthy</span>
-            {selectedDistrict.anomalies > 0 && (
-              <span className="text-amber-500 font-semibold">{selectedDistrict.anomalies} Anomalies</span>
-            )}
-            {selectedDistrict.faults > 0 && (
-              <span className="text-red-500 font-semibold">{selectedDistrict.faults} Faults</span>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Main Map Container */}
-      <div className="relative w-full flex-1 min-h-[460px] lg:min-h-[520px] rounded-cards overflow-hidden border border-sage-mist/70 dark:border-sage-dark bg-[#081310] select-none">
+      <div className="relative w-full flex-1 min-h-[420px] rounded-lg overflow-hidden border border-cardBorder dark:border-[#332C23] bg-[#15130F] select-none">
         {/* Leaflet Map Div with Keyboard & Cursor Drag Support */}
         <div
           ref={mapContainerRef}
           tabIndex={0}
           onKeyDown={handleMapKeyDown}
-          className="w-full h-full min-h-[460px] lg:min-h-[520px] outline-none cursor-grab active:cursor-grabbing focus:ring-1 focus:ring-mint-pulse/30"
+          className="w-full h-full min-h-[420px] outline-none cursor-grab active:cursor-grabbing focus:ring-1 focus:ring-brandAccent/30"
           title="Click to focus. Drag with mouse cursor, click arrow buttons, or use keyboard arrow keys (↑ ↓ ← →) to scroll."
         />
 
         {/* Directional Pan Pad (Up, Down, Left, Right arrows) */}
-        <div className="absolute top-4 right-14 z-[400] bg-[#0e241e]/90 border border-sage-mist/40 dark:border-sage-dark rounded-xl p-1 shadow-lg backdrop-blur-sm flex flex-col items-center gap-0.5">
+        <div className="absolute top-4 right-14 z-[400] bg-white/90 dark:bg-[#26211A]/90 border border-cardBorder dark:border-[#332C23] rounded-xl p-1 shadow-sm backdrop-blur-sm flex flex-col items-center gap-0.5">
           <button
             onClick={() => handlePan(0, -100)}
             title="Pan Up (Arrow Up)"
-            className="w-6 h-6 rounded hover:bg-[#15382f] text-slate-dark hover:text-mint-pulse flex items-center justify-center transition-colors cursor-pointer"
+            className="w-6 h-6 rounded hover:bg-panelBg text-brandDark dark:text-[#F3EFE8] flex items-center justify-center transition-colors cursor-pointer"
           >
-            <ChevronUp className="w-4 h-4" />
+            <ChevronUp className="w-3.5 h-3.5" />
           </button>
           <div className="flex items-center gap-0.5">
             <button
               onClick={() => handlePan(-100, 0)}
               title="Pan Left (Arrow Left)"
-              className="w-6 h-6 rounded hover:bg-[#15382f] text-slate-dark hover:text-mint-pulse flex items-center justify-center transition-colors cursor-pointer"
+              className="w-6 h-6 rounded hover:bg-panelBg text-brandDark dark:text-[#F3EFE8] flex items-center justify-center transition-colors cursor-pointer"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={resetToIndia}
               title="Fit to India"
-              className="w-6 h-6 rounded hover:bg-[#15382f] text-mint-pulse flex items-center justify-center transition-colors cursor-pointer"
+              className="w-6 h-6 rounded hover:bg-panelBg text-brandAccent flex items-center justify-center transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3 h-3" />
             </button>
             <button
               onClick={() => handlePan(100, 0)}
               title="Pan Right (Arrow Right)"
-              className="w-6 h-6 rounded hover:bg-[#15382f] text-slate-dark hover:text-mint-pulse flex items-center justify-center transition-colors cursor-pointer"
+              className="w-6 h-6 rounded hover:bg-panelBg text-brandDark dark:text-[#F3EFE8] flex items-center justify-center transition-colors cursor-pointer"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
           <button
             onClick={() => handlePan(0, 100)}
             title="Pan Down (Arrow Down)"
-            className="w-6 h-6 rounded hover:bg-[#15382f] text-slate-dark hover:text-mint-pulse flex items-center justify-center transition-colors cursor-pointer"
+            className="w-6 h-6 rounded hover:bg-panelBg text-brandDark dark:text-[#F3EFE8] flex items-center justify-center transition-colors cursor-pointer"
           >
-            <ChevronDown className="w-4 h-4" />
+            <ChevronDown className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Custom Zoom Controls */}
         <div className="absolute top-4 right-4 z-[400] flex flex-col gap-1">
           <button
-            onClick={handleZoomIn}
-            title="Zoom In"
-            className="w-8 h-8 rounded-lg bg-[#0e241e]/90 hover:bg-[#15382f] border border-sage-mist/40 dark:border-sage-dark text-white flex items-center justify-center shadow-lg transition-colors cursor-pointer"
+            onClick={() => mapInstanceRef.current?.zoomIn()}
+            className="w-7 h-7 rounded-md bg-white/90 dark:bg-[#26211A]/90 hover:bg-white border border-cardBorder dark:border-[#332C23] text-brandDark dark:text-white flex items-center justify-center cursor-pointer shadow-sm"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3.5 h-3.5" />
           </button>
           <button
-            onClick={handleZoomOut}
-            title="Zoom Out"
-            className="w-8 h-8 rounded-lg bg-[#0e241e]/90 hover:bg-[#15382f] border border-sage-mist/40 dark:border-sage-dark text-white flex items-center justify-center shadow-lg transition-colors cursor-pointer"
+            onClick={() => mapInstanceRef.current?.zoomOut()}
+            className="w-7 h-7 rounded-md bg-white/90 dark:bg-[#26211A]/90 hover:bg-white border border-cardBorder dark:border-[#332C23] text-brandDark dark:text-white flex items-center justify-center cursor-pointer shadow-sm"
           >
-            <Minus className="w-4 h-4" />
+            <Minus className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Loading Radar Overlay */}
         {isLoading && (
-          <div className="absolute inset-0 bg-[#081310]/75 backdrop-blur-[2px] z-[500] flex flex-col items-center justify-center gap-3">
+          <div className="absolute inset-0 bg-[#15130F]/75 backdrop-blur-[2px] z-[500] flex flex-col items-center justify-center gap-3">
             <div className="relative w-12 h-12 flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full border-2 border-mint-pulse/20 animate-ping" />
-              <div className="w-8 h-8 rounded-full border-2 border-t-mint-pulse border-r-transparent border-b-canopy border-l-transparent animate-spin" />
-              <Radio className="w-4 h-4 text-mint-pulse animate-pulse" />
+              <div className="absolute inset-0 rounded-full border-2 border-brandAccent/20 animate-ping" />
+              <Radio className="w-4 h-4 text-brandAccent animate-pulse" />
             </div>
-            <span className="text-xs font-semibold text-mint-pulse tracking-wide">
-              Loading geospatial boundary stream...
+            <span className="text-xs font-semibold text-brandAccent font-mono">
+              Loading geospatial telemetry boundary stream...
             </span>
           </div>
         )}
 
-        {/* Error State Banner with Retry */}
-        {apiError && (
-          <div className="absolute top-4 left-4 right-16 z-[500] p-3 rounded-lg bg-red-950/90 border border-red-500/50 text-red-200 text-xs flex items-center justify-between shadow-2xl backdrop-blur-sm">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
-              <span>{apiError}</span>
-            </div>
-            <button
-              onClick={loadInitialData}
-              className="px-3 py-1 rounded bg-red-800 hover:bg-red-700 text-white font-semibold text-[11px] transition-colors cursor-pointer shrink-0"
-            >
-              Retry
-            </button>
-          </div>
-        )}
-
-        {/* Station Telemetry Flyout Drawer (when a station is selected) */}
         {activeStationDetail && (
-          <div className="absolute top-4 left-4 z-[450] w-84 max-w-[calc(100%-2rem)] rounded-xl bg-[#091a15]/95 border border-mint-pulse/40 p-4 shadow-2xl backdrop-blur-md text-white text-xs animate-in fade-in slide-in-from-left-4 duration-300">
-            <div className="flex items-start justify-between gap-2 pb-2 mb-3 border-b border-sage-dark/60">
+          <div className="absolute top-4 left-4 z-[450] w-80 max-w-[calc(100%-2rem)] rounded-xl bg-white/95 dark:bg-[#1E1A15]/95 border border-cardBorder dark:border-[#332C23] p-4 text-brandDark dark:text-[#F3EFE8] text-xs backdrop-blur-md shadow-elevation">
+            <div className="flex items-start justify-between gap-2 pb-2 mb-3 border-b border-cardBorder dark:border-[#332C23]">
               <div>
                 <div className="flex items-center gap-1.5">
                   <span
                     className="w-2.5 h-2.5 rounded-full"
                     style={{ backgroundColor: getStatusColor(activeStationDetail.status) }}
                   />
-                  <h4 className="font-bold text-sm text-white">{activeStationDetail.name}</h4>
+                  <h4 className="font-bold text-sm text-brandDark dark:text-white">{activeStationDetail.name}</h4>
                 </div>
-                <div className="text-[11px] text-slate-dark font-mono">
+                <div className="text-[11px] text-inkMuted dark:text-[#9A938A] font-mono">
                   {activeStationDetail.id} · {activeStationDetail.wsi}
                 </div>
               </div>
               <button
                 onClick={() => setActiveStationDetail(null)}
-                className="p-1 rounded hover:bg-white/10 text-slate-dark hover:text-white transition-colors cursor-pointer"
+                className="p-1 text-inkMuted hover:text-brandDark dark:hover:text-white cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Geographical & Status Badges */}
-            <div className="flex items-center gap-2 mb-3">
-              <span
-                className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
-                style={{
-                  backgroundColor: `${getStatusColor(activeStationDetail.status)}20`,
-                  color: getStatusColor(activeStationDetail.status),
-                  border: `1px solid ${getStatusColor(activeStationDetail.status)}40`,
-                }}
-              >
-                {activeStationDetail.status_label}
-              </span>
-              <span className="text-[11px] text-slate-dark">
-                {activeStationDetail.district_name}, {activeStationDetail.region_name}
-              </span>
-              <span className="text-[11px] text-slate-dark">· Elev: {activeStationDetail.elevation}m</span>
-            </div>
-
-            {/* Real-time Telemetry Grid */}
-            <div className="grid grid-cols-2 gap-2 mb-3 bg-[#0e251e]/80 p-2.5 rounded-lg border border-sage-dark/40">
+            <div className="grid grid-cols-2 gap-2 mb-2 bg-panelBg dark:bg-[#26211A] p-2.5 rounded-lg border border-cardBorder dark:border-[#332C23]">
               <div className="flex items-center gap-2">
-                <Thermometer className="w-3.5 h-3.5 text-mint-pulse" />
+                <Thermometer className="w-3.5 h-3.5 text-brandAccent" />
                 <div>
-                  <div className="text-[10px] text-slate-dark">Temperature</div>
-                  <div className="font-bold text-white text-xs">
-                    {activeStationDetail.telemetry.temperature}°C
-                  </div>
+                  <div className="text-[10px] text-inkMuted dark:text-[#9A938A]">Temperature</div>
+                  <div className="font-bold text-brandDark dark:text-white text-xs font-mono">{activeStationDetail.telemetry.temperature}°C</div>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
-                <Droplets className="w-3.5 h-3.5 text-sky-400" />
+                <Droplets className="w-3.5 h-3.5 text-blue-500" />
                 <div>
-                  <div className="text-[10px] text-slate-dark">Rel. Humidity</div>
-                  <div className="font-bold text-white text-xs">
-                    {activeStationDetail.telemetry.relative_humidity}%
-                  </div>
+                  <div className="text-[10px] text-inkMuted dark:text-[#9A938A]">Rel. Humidity</div>
+                  <div className="font-bold text-brandDark dark:text-white text-xs font-mono">{activeStationDetail.telemetry.relative_humidity}%</div>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
-                <Gauge className="w-3.5 h-3.5 text-amber-400" />
+                <Gauge className="w-3.5 h-3.5 text-signalAmber" />
                 <div>
-                  <div className="text-[10px] text-slate-dark">Pressure</div>
-                  <div className="font-bold text-white text-xs">
-                    {activeStationDetail.telemetry.atmospheric_pressure} hPa
-                  </div>
+                  <div className="text-[10px] text-inkMuted dark:text-[#9A938A]">Pressure</div>
+                  <div className="font-bold text-brandDark dark:text-white text-xs font-mono">{activeStationDetail.telemetry.atmospheric_pressure} hPa</div>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
-                <Wind className="w-3.5 h-3.5 text-emerald-400" />
+                <Wind className="w-3.5 h-3.5 text-signalGreen" />
                 <div>
-                  <div className="text-[10px] text-slate-dark">Wind / Gust</div>
-                  <div className="font-bold text-white text-xs">
-                    {activeStationDetail.telemetry.wind_speed} m/s ({activeStationDetail.telemetry.wind_direction})
-                  </div>
+                  <div className="text-[10px] text-inkMuted dark:text-[#9A938A]">Wind / Gust</div>
+                  <div className="font-bold text-brandDark dark:text-white text-xs font-mono">{activeStationDetail.telemetry.wind_speed} m/s</div>
                 </div>
-              </div>
-            </div>
-
-            {/* Anomaly Attribution if present */}
-            {activeStationDetail.anomaly_attribution && (
-              <div className="mb-3 p-2 rounded bg-amber-950/40 border border-amber-500/40 text-amber-200 text-[11px]">
-                <div className="font-semibold mb-0.5 flex items-center gap-1 text-amber-400">
-                  <AlertTriangle className="w-3 h-3" />
-                  <span>Attribution: {activeStationDetail.anomaly_attribution}</span>
-                </div>
-                {activeStationDetail.evidence_chain && activeStationDetail.evidence_chain.length > 0 && (
-                  <ul className="list-disc list-inside text-[10px] text-amber-300/80 mt-1 space-y-0.5">
-                    {activeStationDetail.evidence_chain.map((ev, i) => (
-                      <li key={i}>{ev}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
-
-            {/* Sensor Health Status */}
-            <div className="border-t border-sage-dark/40 pt-2">
-              <div className="text-[10px] font-bold text-slate-dark uppercase mb-1.5">Sensor Array Health</div>
-              <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-                {Object.entries(activeStationDetail.sensor_health).map(([sensor, health]) => (
-                  <div key={sensor} className="flex items-center justify-between pr-1">
-                    <span className="text-slate-dark capitalize">{sensor.replace('_', ' ')}:</span>
-                    <span
-                      className={`font-semibold ${health === 'NOMINAL'
-                        ? 'text-emerald-400'
-                        : health.includes('FAULT') || health.includes('BREACH')
-                          ? 'text-red-400'
-                          : 'text-amber-400'
-                        }`}
-                    >
-                      {health}
-                    </span>
-                  </div>
-                ))}
               </div>
             </div>
           </div>

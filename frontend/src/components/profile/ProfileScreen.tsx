@@ -98,28 +98,28 @@ export const ProfileScreen: React.FC = () => {
   const userInitial = user?.username ? user.username.charAt(0).toUpperCase() : 'U';
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-16">
+    <div className="space-y-6 w-full pb-16">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e0e0e0] dark:border-[#282e3a] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-cardBorder dark:border-[#332C23] pb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#141414] dark:text-white">
+          <h1 className="text-xl font-bold tracking-tight text-brandDark dark:text-[#F3EFE8]">
             User Profile &amp; Settings
           </h1>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono border border-signalGreen/30 bg-signalGreenLight text-signalGreen font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-signalGreen animate-pulse" />
             Session Active
           </span>
-          <span className="text-[11px] font-mono px-2.5 py-1 rounded-full border border-[#E5E3DC] dark:border-[#232936] bg-white dark:bg-[#151921] text-[#71717A] dark:text-[#94A3B8]">
+          <span className="text-[11px] font-mono px-2.5 py-1 rounded-full border border-cardBorder dark:border-[#332C23] bg-panelBg dark:bg-[#26211A] text-inkMuted dark:text-[#9A938A]">
             UID: SG-{user?.id ? String(user.id).padStart(4, '0') : '0001'}
           </span>
         </div>
       </div>
 
       {/* User Hero Overview Card */}
-      <div className="relative overflow-hidden rounded-2xl border border-[#E5E3DC] dark:border-[#232936] bg-gradient-to-br from-white via-[#FAF8F5] to-emerald-500/5 dark:from-[#151921] dark:via-[#11141A] dark:to-[#0D0F12] p-6 sm:p-8 shadow-sm">
+      <div className="relative overflow-hidden rounded-xl border border-cardBorder dark:border-[#332C23] bg-white dark:bg-[#1E1A15] p-6 sm:p-8 shadow-none">
         <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 relative z-10">

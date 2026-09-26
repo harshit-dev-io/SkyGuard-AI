@@ -1,7 +1,7 @@
 export const API_BASE_URL: string = (
   import.meta.env.VITE_API_URL ||
   import.meta.env.VITE_API_BASE_URL ||
-  'https://skyguard-ai-899b.onrender.com/api/v1'
+  'http://127.0.0.1:8000/api/v1'
 ).replace(/\/+$/, '');
 
 /**
@@ -31,6 +31,8 @@ export const MAP_ENDPOINTS = {
   // Level 3: District / AWS Stations
   GET_DISTRICT_STATIONS: (districtId: string) => `${MAP_API_BASE_URL}/districts/${districtId}/stations`,
   GET_STATION_TELEMETRY: (stationId: string) => `${MAP_API_BASE_URL}/stations/${stationId}/telemetry`,
+  GET_STATION_NEARBY: (stationId: string, limit: number = 6) => `${MAP_API_BASE_URL}/stations/${stationId}/nearby?limit=${limit}`,
+  GET_STATION_REPORT: (stationId: string) => `${MAP_API_BASE_URL}/stations/${stationId}/report`,
 
   // Geographic boundary GeoJSON
   GET_REGION_GEOJSON: (regionId: string) => `${MAP_API_BASE_URL}/regions/${regionId}/geojson`,

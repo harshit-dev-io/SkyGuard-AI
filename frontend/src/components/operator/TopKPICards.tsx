@@ -7,17 +7,18 @@ export const TopKPICards: React.FC = () => {
 
   if (isLoadingStations && !kpiSummary) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="p-6 rounded-cards border border-sage-mist/70 dark:border-sage-dark bg-sheetWhite dark:bg-sheetWhite-dark animate-pulse h-40"
+            className="p-4 rounded-xl border border-cardBorder dark:border-[#332C23] bg-white dark:bg-[#1E1A15] animate-pulse h-36 flex flex-col justify-between"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-creamPaper dark:bg-canopy-dark/40" />
-              <div className="w-28 h-3 rounded-full bg-creamPaper dark:bg-canopy-dark/40" />
+            <div className="flex items-center justify-between">
+              <div className="w-28 h-3 rounded bg-panelBg dark:bg-[#26211A]" />
+              <div className="w-12 h-5 rounded-full bg-panelBg dark:bg-[#26211A]" />
             </div>
-            <div className="w-24 h-8 rounded-full bg-creamPaper dark:bg-canopy-dark/40 mt-6" />
+            <div className="w-36 h-7 rounded bg-panelBg dark:bg-[#26211A] my-2" />
+            <div className="w-full h-4 rounded bg-panelBg dark:bg-[#26211A]" />
           </div>
         ))}
       </div>
@@ -42,129 +43,112 @@ export const TopKPICards: React.FC = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 select-none">
-      {/* Card 1: Stations Online (Mint Pulse active LED) */}
-      <div className="p-6 rounded-cards border border-sage-mist dark:border-sage-dark bg-sheetWhite dark:bg-sheetWhite-dark flex flex-col justify-between transition-colors">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-creamPaper dark:bg-canopy-dark/40 text-canopy dark:text-mint-pulse flex items-center justify-center">
-              <Users className="w-4 h-4" />
-            </div>
-            <span className="text-[13px] font-bold uppercase tracking-[0.07em] text-slate dark:text-slate-dark">
-              Stations Online
-            </span>
-          </div>
-          <span className="w-2.5 h-2.5 rounded-full bg-mint-pulse shrink-0 animate-pulse" title="Live Telemetry" />
-        </div>
-
-        <div className="my-2 flex items-baseline justify-between">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-[32px] sm:text-[36px] font-medium text-bark dark:text-white leading-none">
-              {summary.stationsOnline.toLocaleString()}
-            </span>
-            <span className="text-[13px] text-slate-muted dark:text-slate-dark font-normal">
-              / {summary.capacity.toLocaleString()}
-            </span>
-          </div>
-
-          <span className="px-2.5 py-1 rounded-pills text-[12px] font-medium bg-canopy/10 dark:bg-mint-pulse/10 text-canopy dark:text-mint-pulse border border-canopy/20 dark:border-mint-pulse/20">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full select-none">
+      {/* Card 1: Stations Online (Yield) */}
+      <div
+        id="tutorial-kpi-yield"
+        className="bg-white dark:bg-[#1E1A15] border border-cardBorder dark:border-[#332C23] rounded-xl p-4 flex flex-col justify-between transition-colors shadow-none"
+      >
+        <div className="flex items-start justify-between">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-inkMuted dark:text-[#9A938A]">
+            STATIONS ONLINE
+          </span>
+          <span className="px-2 py-0.5 rounded-full text-xs font-mono font-medium bg-signalGreenLight text-signalGreen">
             {summary.onlinePct}%
           </span>
         </div>
-
-        <div className="mt-2 flex items-center gap-1.5 text-[13px] text-canopy dark:text-mint-pulse font-medium">
-          <ArrowUpRight className="w-4 h-4" />
-          <span>{summary.trendOnline}</span>
+        <div className="my-2.5">
+          <div className="text-2xl font-mono font-semibold tracking-tight text-brandDark dark:text-[#F3EFE8] tabular-nums">
+            {summary.stationsOnline.toLocaleString()} / {summary.capacity.toLocaleString()}
+          </div>
+        </div>
+        <div className="pt-2 border-t border-cardBorder/60 dark:border-[#332C23] flex items-center justify-between text-xs text-inkMuted dark:text-[#9A938A]">
+          <span>{summary.onlinePct}% operational yield</span>
+          <span className="text-signalGreen font-mono font-medium flex items-center gap-0.5">
+            <ArrowUpRight className="w-3.5 h-3.5" />
+            {summary.trendOnline}
+          </span>
         </div>
       </div>
 
-      {/* Card 2: Degraded / Drift */}
-      <div className="p-6 rounded-cards border border-sage-mist dark:border-sage-dark bg-sheetWhite dark:bg-sheetWhite-dark flex flex-col justify-between transition-colors">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-creamPaper dark:bg-canopy-dark/40 text-canopy dark:text-mint-pulse flex items-center justify-center">
-              <AlertTriangle className="w-4 h-4" />
-            </div>
-            <span className="text-[13px] font-bold uppercase tracking-[0.07em] text-slate dark:text-slate-dark">
-              Degraded / Drift
-            </span>
+      {/* Card 2: Calibration Drift */}
+      <div
+        id="tutorial-kpi-drift"
+        className="bg-white dark:bg-[#1E1A15] border border-cardBorder dark:border-[#332C23] rounded-xl p-4 flex flex-col justify-between transition-colors shadow-none"
+      >
+        <div className="flex items-start justify-between">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-inkMuted dark:text-[#9A938A]">
+            CALIBRATION DRIFT
+          </span>
+          <span className="px-2 py-0.5 rounded-full text-xs font-mono font-medium bg-signalAmberLight text-signalAmber">
+            Warning
+          </span>
+        </div>
+        <div className="my-2.5">
+          <div className="text-2xl font-mono font-semibold tracking-tight text-brandDark dark:text-[#F3EFE8] tabular-nums">
+            {summary.degradedDrift} stations
           </div>
-          <span className="w-2.5 h-2.5 rounded-full bg-sage-mist dark:bg-sage-dark shrink-0" />
         </div>
-
-        <div className="my-2 flex items-baseline justify-between">
-          <span className="text-[32px] sm:text-[36px] font-medium text-bark dark:text-white leading-none">
-            {summary.degradedDrift}
+        <div className="pt-2 border-t border-cardBorder/60 dark:border-[#332C23] flex items-center justify-between text-xs text-inkMuted dark:text-[#9A938A]">
+          <span>Δ &gt; 1.8σ threshold</span>
+          <span className="text-signalAmber font-mono font-medium flex items-center gap-0.5">
+            <ArrowUpRight className="w-3.5 h-3.5" />
+            {summary.trendDegraded}
           </span>
-
-          <span className="px-2.5 py-1 rounded-pills text-[12px] font-medium bg-creamPaper dark:bg-canopy-dark/40 text-slate dark:text-slate-dark border border-sage-mist/60 dark:border-sage-dark">
-            {summary.degradedPct}%
-          </span>
-        </div>
-
-        <div className="mt-2 flex items-center gap-1.5 text-[13px] text-slate dark:text-slate-dark font-medium">
-          <ArrowUpRight className="w-4 h-4" />
-          <span>{summary.trendDegraded}</span>
         </div>
       </div>
 
-      {/* Card 3: Extreme Events (Orb Violet Accent) */}
-      <div className="p-6 rounded-cards border border-sage-mist dark:border-sage-dark bg-sheetWhite dark:bg-sheetWhite-dark flex flex-col justify-between transition-colors">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-orb-lavender/40 dark:bg-orb-violet/20 text-orb-violet flex items-center justify-center">
-              <CloudRain className="w-4 h-4" />
-            </div>
-            <span className="text-[13px] font-bold uppercase tracking-[0.07em] text-slate dark:text-slate-dark">
-              Extreme Events
-            </span>
+      {/* Card 3: Extreme Weather Events */}
+      <div
+        id="tutorial-kpi-extreme"
+        className="bg-white dark:bg-[#1E1A15] border border-cardBorder dark:border-[#332C23] rounded-xl p-4 flex flex-col justify-between transition-colors shadow-none"
+      >
+        <div className="flex items-start justify-between">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-inkMuted dark:text-[#9A938A]">
+            EXTREME WEATHER EVENTS
+          </span>
+          <span className="px-2 py-0.5 rounded-full text-xs font-mono font-medium bg-signalAmberLight text-signalAmber flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-signalAmber animate-ping" />
+            Active Watch
+          </span>
+        </div>
+        <div className="my-2.5">
+          <div className="text-2xl font-mono font-semibold tracking-tight text-brandDark dark:text-[#F3EFE8] tabular-nums">
+            {summary.extremeEvents} active
           </div>
-          <span className="w-2.5 h-2.5 rounded-full bg-orb-violet shrink-0" />
         </div>
-
-        <div className="my-2 flex items-baseline justify-between">
-          <span className="text-[32px] sm:text-[36px] font-medium text-bark dark:text-white leading-none">
-            {summary.extremeEvents}
+        <div className="pt-2 border-t border-cardBorder/60 dark:border-[#332C23] flex items-center justify-between text-xs text-inkMuted dark:text-[#9A938A]">
+          <span>{summary.extremeType} alert</span>
+          <span className="font-mono text-brandDark dark:text-[#F3EFE8] font-medium">
+            {summary.trendExtreme}
           </span>
-
-          <span className="px-2.5 py-1 rounded-pills text-[12px] font-semibold bg-orb-violet text-white uppercase tracking-wider">
-            {summary.extremeType}
-          </span>
-        </div>
-
-        <div className="mt-2 flex items-center gap-1.5 text-[13px] text-orb-violet font-medium">
-          <ArrowUpRight className="w-4 h-4" />
-          <span>{summary.trendExtreme}</span>
         </div>
       </div>
 
-      {/* Card 4: Confirmed Faults (Canopy Accent) */}
-      <div className="p-6 rounded-cards border border-sage-mist dark:border-sage-dark bg-sheetWhite dark:bg-sheetWhite-dark flex flex-col justify-between transition-colors">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-creamPaper dark:bg-canopy-dark/40 text-canopy dark:text-mint-pulse flex items-center justify-center">
-              <AlertOctagon className="w-4 h-4" />
-            </div>
-            <span className="text-[13px] font-bold uppercase tracking-[0.07em] text-slate dark:text-slate-dark">
-              Confirmed Faults
-            </span>
-          </div>
-          <span className="w-2.5 h-2.5 rounded-full bg-canopy dark:bg-mint-pulse shrink-0" />
-        </div>
-
-        <div className="my-2 flex items-baseline justify-between">
-          <span className="text-[32px] sm:text-[36px] font-medium text-bark dark:text-white leading-none">
-            {String(summary.confirmedFaults).padStart(2, '0')}
+      {/* Card 4: Confirmed Sensor Faults */}
+      <div
+        id="tutorial-kpi-faults"
+        className="bg-white dark:bg-[#1E1A15] border border-cardBorder dark:border-[#332C23] rounded-xl p-4 flex flex-col justify-between transition-colors shadow-none"
+      >
+        <div className="flex items-start justify-between">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-inkMuted dark:text-[#9A938A]">
+            CONFIRMED SENSOR FAULTS
           </span>
-
-          <span className="px-2.5 py-1 rounded-pills text-[12px] font-medium bg-creamPaper dark:bg-canopy-dark/40 text-slate dark:text-slate-dark border border-sage-mist/60 dark:border-sage-dark uppercase">
+          <span className="px-2 py-0.5 rounded-full text-xs font-mono font-medium bg-signalRedLight text-signalRed flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-signalRed" />
+            Critical
+          </span>
+        </div>
+        <div className="my-2.5">
+          <div className="text-2xl font-mono font-semibold tracking-tight text-brandDark dark:text-[#F3EFE8] tabular-nums">
+            {summary.confirmedFaults} offline
+          </div>
+        </div>
+        <div className="pt-2 border-t border-cardBorder/60 dark:border-[#332C23] flex items-center justify-between text-xs text-inkMuted dark:text-[#9A938A]">
+          <span>Awaiting physical review</span>
+          <span className="font-mono text-signalRed font-medium">
             {summary.faultBadge}
           </span>
-        </div>
-
-        <div className="mt-2 flex items-center gap-1.5 text-[13px] text-slate dark:text-slate-dark font-medium">
-          <ArrowDownRight className="w-4 h-4" />
-          <span>{summary.trendFaults}</span>
         </div>
       </div>
     </div>

@@ -4,125 +4,117 @@
 
 @layer base {
   :root {
-    /* Arcadia — Forest Observatory at Dawn Design Tokens */
-    --color-canopy: #104336;
-    --color-mint-pulse: #0fff87;
-    --color-orb-violet: #7c18d3;
-    --color-cream-paper: #f3f1ec;
-    --color-sheet-white: #ffffff;
-    --color-bark: #101f1e;
-    --color-ink: #000000;
-    --color-slate: #535e5d;
-    --color-charcoal: #333333;
-    --color-sage-mist: #afc4bf;
-    --color-pale-sage: #c2cec8;
-    --color-muted-slate: #798281;
-    --color-hero-wash: #e8e7f5;
-    --gradient-hero-wash: linear-gradient(212.12deg, #afc4bf 14.83%, #e8e7f5 52.99%, #f1eee9 79.47%);
+    /* - AI Authority Meteorological Monitoring System Tokens */
+    --color-canvas: #FFFFFF;
+    --color-surface: #FFFFFF;
+    --color-surface-muted: #FAF9F7;
+    --color-border: #E9E5DF;
+    --color-ink: #1B1A18;
+    --color-ink-muted: #716C64;
+    --color-accent: #E1590C;
+    --color-accent-soft: #FDEDE1;
+    --color-accent-soft-border: #FCD9C3;
+    --color-accent-text: #C24A08;
+    --color-signal-green: #1F9D55;
+    --color-signal-green-light: #E8F7EE;
+    --color-signal-amber: #E8A317;
+    --color-signal-amber-light: #FEF3C7;
+    --color-signal-red: #D6483F;
+    --color-signal-red-light: #FEE2E2;
+    --color-xai-violet: #6D28D9;
+    --color-xai-violet-light: #F3E8FF;
 
-    /* Page & Element Surface Mappings */
-    --bg-page: #f3f1ec;
-    --bg-card: #ffffff;
-    --text-primary: #101f1e;
-    --text-muted: #535e5d;
-    --border-main: #afc4bf;
+    /* Legacy surface & text mappings */
+    --bg-page: var(--color-canvas);
+    --bg-card: var(--color-surface);
+    --text-primary: var(--color-ink);
+    --text-muted: var(--color-ink-muted);
+    --border-main: var(--color-border);
 
-    /* Legacy Mobbin Variable Aliases mapped to Arcadia */
-    --color-canvas: #f3f1ec;
-    --color-canvas-soft: #eae7e0;
-    --color-field: #f3f1ec;
-    --color-hairline: #afc4bf;
-    --color-hairline-soft: #c2cec8;
-    --color-accent: #104336;
+    /* Legacy aliases mapped directly to - AI tokens */
+    --color-canopy: #1B1A18;
+    --color-mint-pulse: #1F9D55;
+    --color-orb-violet: #6D28D9;
+    --color-cream-paper: #FAF9F7;
+    --color-sheet-white: #FFFFFF;
+    --color-bark: #1B1A18;
+    --color-slate: #716C64;
+    --color-charcoal: #1B1A18;
+    --color-sage-mist: #E9E5DF;
+    --color-pale-sage: #E9E5DF;
+    --color-muted-slate: #716C64;
 
-    /* Arcadia Border Radius Hierarchy: 16px / 8px / 4px / 9999px */
-    --radius-cards: 16px;
-    --radius-buttons: 8px;
-    --radius-inputs: 4px;
-    --radius-tags: 9999px;
-    --radius-pills: 9999px;
-    --radius-images: 16px;
-
-    /* Spacing */
-    --spacing-unit: 8px;
-    --spacing-8: 8px;
-    --spacing-16: 16px;
-    --spacing-24: 24px;
-    --spacing-32: 32px;
-    --spacing-40: 40px;
-    --spacing-48: 48px;
-    --spacing-64: 64px;
-    --spacing-88: 88px;
-    --spacing-96: 96px;
-    --spacing-120: 120px;
-
-    /* Layout */
-    --page-max-width: 1200px;
-    --section-gap: 80px;
-    --card-padding: 24px;
-    --element-gap: 24px;
-
-    /* Typography */
-    --font-dm-sans: 'DM Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-
-    /* Legacy shadcn border */
-    --border: 165 14% 72%;
+    --font-inter: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --font-dm-sans: var(--font-inter);
   }
 
   .dark {
-    /* Night Forest Observatory Counterpart */
-    --color-canopy: #175a49;
-    --color-mint-pulse: #0fff87;
-    --color-orb-violet: #9b4deb;
-    --color-cream-paper: #0b1714;
-    --color-sheet-white: #11221e;
-    --color-bark: #e2ebe8;
-    --color-ink: #ffffff;
-    --color-slate: #8fa59e;
-    --color-charcoal: #d2ddd9;
-    --color-sage-mist: #25423a;
-    --color-pale-sage: #2d4f46;
-    --color-muted-slate: #708a82;
+    --color-canvas: #15130F;
+    --color-surface: #1E1A15;
+    --color-surface-muted: #26211A;
+    --color-border: #332C23;
+    --color-ink: #F3EFE8;
+    --color-ink-muted: #9A938A;
+    --color-accent: #FF7A30;
+    --color-accent-soft: #3A2416;
+    --color-accent-soft-border: #4A301E;
+    --color-accent-text: #FF9B60;
+    --color-signal-green: #1F9D55;
+    --color-signal-green-light: rgba(31, 157, 85, 0.2);
+    --color-signal-amber: #E8A317;
+    --color-signal-amber-light: rgba(232, 163, 23, 0.2);
+    --color-signal-red: #D6483F;
+    --color-signal-red-light: rgba(214, 72, 63, 0.2);
+    --color-xai-violet: #6D28D9;
+    --color-xai-violet-light: rgba(109, 40, 217, 0.2);
 
-    --bg-page: #0b1714;
-    --bg-card: #11221e;
-    --text-primary: #e2ebe8;
-    --text-muted: #8fa59e;
-    --border-main: #25423a;
+    --bg-page: var(--color-canvas);
+    --bg-card: var(--color-surface);
+    --text-primary: var(--color-ink);
+    --text-muted: var(--color-ink-muted);
+    --border-main: var(--color-border);
 
-    --color-canvas: #0b1714;
-    --color-canvas-soft: #11221e;
-    --color-field: #142823;
-    --color-hairline: #25423a;
-    --color-hairline-soft: #2d4f46;
-    --color-accent: #0fff87;
-    --border: 165 25% 20%;
+    --color-canopy: #F3EFE8;
+    --color-mint-pulse: #1F9D55;
+    --color-orb-violet: #6D28D9;
+    --color-cream-paper: #26211A;
+    --color-sheet-white: #1E1A15;
+    --color-bark: #F3EFE8;
+    --color-slate: #9A938A;
+    --color-charcoal: #F3EFE8;
+    --color-sage-mist: #332C23;
+    --color-pale-sage: #332C23;
+    --color-muted-slate: #9A938A;
   }
 
   * {
-    border-color: var(--border-main);
+    border-color: var(--color-border);
   }
 
   body {
-    font-family: var(--font-dm-sans);
-    font-feature-settings: "ss01" on;
-    background-color: var(--bg-page);
-    color: var(--text-primary);
+    font-family: var(--font-inter);
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Quantitative numbers must always enforce tabular figures */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
 
 /* SkyGuard Leaflet Dark Theme Overrides */
 .leaflet-container {
-  background-color: #081310 !important;
-  font-family: var(--font-dm-sans), sans-serif;
+  background-color: #15130F !important;
+  font-family: var(--font-inter), sans-serif;
   outline: none !important;
   border: none !important;
 }
 
-/* Eliminate tile seams, borders, outlines, and subpixel grid lines */
 .leaflet-tile {
   border: none !important;
   outline: none !important;
@@ -170,19 +162,15 @@
 
 .skyguard-map-tooltip {
   pointer-events: none !important;
-  background: rgba(11, 23, 20, 0.94) !important;
-  border: 1px solid rgba(15, 255, 135, 0.35) !important;
+  background: rgba(27, 26, 24, 0.94) !important;
+  border: 1px solid rgba(233, 229, 223, 0.2) !important;
   border-radius: 8px !important;
-  color: #e2ebe8 !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+  color: #F3EFE8 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
   backdrop-filter: blur(8px);
   padding: 8px 12px !important;
   font-size: 11px !important;
   line-height: 1.4 !important;
-}
-
-.skyguard-map-tooltip::before {
-  border-top-color: rgba(15, 255, 135, 0.35) !important;
 }
 
 .skyguard-station-marker {
@@ -204,8 +192,8 @@
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  color: #c5dfd6 !important;
-  font-family: var(--font-dm-sans), sans-serif;
+  color: #F3EFE8 !important;
+  font-family: var(--font-inter), sans-serif;
   font-size: 11px !important;
   font-weight: 600 !important;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 0.9);
@@ -227,11 +215,11 @@
 /* Custom sleek scrollbar for SkyGuard dropdowns */
 .skyguard-dropdown-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #afc4bf transparent;
+  scrollbar-color: #E9E5DF transparent;
 }
 
 .dark .skyguard-dropdown-scroll {
-  scrollbar-color: #25423a transparent;
+  scrollbar-color: #332C23 transparent;
 }
 
 .skyguard-dropdown-scroll::-webkit-scrollbar {
@@ -244,18 +232,18 @@
 }
 
 .skyguard-dropdown-scroll::-webkit-scrollbar-thumb {
-  background-color: #afc4bf;
+  background-color: #E9E5DF;
   border-radius: 9999px;
 }
 
 .dark .skyguard-dropdown-scroll::-webkit-scrollbar-thumb {
-  background-color: #25423a;
+  background-color: #332C23;
 }
 
 .skyguard-dropdown-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: #798281;
+  background-color: #716C64;
 }
 
 .dark .skyguard-dropdown-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: #0fff87;
+  background-color: #E1590C;
 }

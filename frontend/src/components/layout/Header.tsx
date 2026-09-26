@@ -1,9 +1,21 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDashboard } from '../../context/DashboardContext';
 import type { DashboardTab } from '../../context/DashboardContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
-import { CloudLightning, Sun, Moon, Shield, Activity } from 'lucide-react';
+import {
+  Sun,
+  Moon,
+  Shield,
+  Activity,
+  Sparkles,
+  Info,
+  Compass,
+  Bell,
+} from 'lucide-react';
+import { SystemDemoModal } from '../shared/SystemDemoModal';
+import operatorAvatar from '../../assets/operator-avatar.png';
+import skyguardLogo from '../../assets/skyguard-logo.png';
 
 interface ProfileAvatarProps {
   onClick: () => void;
@@ -13,46 +25,40 @@ interface ProfileAvatarProps {
 export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ onClick, isActive }) => {
   const { user } = useAuth();
 
-  // Extract up to 2 initials from username or email
-  const getInitials = (): string => {
-    if (!user) return 'OP';
-    if (user.username) {
-      const parts = user.username.trim().split(/[\s_-]+/);
-      if (parts.length >= 2 && parts[0] && parts[1]) {
-        return (parts[0][0] + parts[1][0]).toUpperCase();
-      }
-      return user.username.slice(0, 2).toUpperCase();
-    }
-    if (user.email) {
-      return user.email.slice(0, 2).toUpperCase();
-    }
-    return 'OP';
-  };
-
-  const initials = getInitials();
-
   return (
     <button
       onClick={onClick}
       title={user ? `${user.username} (${user.role.toUpperCase()}) - View Profile` : 'User Profile'}
       aria-label="User profile settings"
-      className={`relative w-9 h-9 rounded-full flex items-center justify-center font-semibold text-xs transition-all cursor-pointer select-none ${
-        isActive
-          ? 'ring-2 ring-canopy dark:ring-mint-pulse border-2 border-canopy dark:border-white bg-canopy/10 dark:bg-mint-pulse/10 text-canopy dark:text-white'
-          : 'border border-sage-mist dark:border-sage-dark bg-creamPaper dark:bg-canopy-dark/30 text-bark dark:text-bark-dark hover:border-canopy dark:hover:border-mint-pulse'
+      className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer select-none ml-1 ${
+        isActive ? 'ring-2 ring-brandAccent ring-offset-2' : ''
       }`}
     >
-      <span>{initials}</span>
-      {/* Online indicator dot - Arcadia Mint Pulse LED accent */}
-      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-mint-pulse border-2 border-sheetWhite dark:border-sheetWhite-dark" />
+      <img
+        src={operatorAvatar}
+        alt="Operator Profile"
+        className="w-8 h-8 rounded-full object-cover border border-cardBorder shadow-xs"
+      />
+      {/* Online indicator dot - - AI Signal Green LED */}
+      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-signalGreen border-2 border-white dark:border-[#1B1A18]" />
     </button>
   );
 };
 
-export const Header: React.FC = () => {
-  const { user } = useAuth();
-  const { activeTab, setActiveTab, anomalyFeed } = useDashboard();
-  const { theme, toggleTheme, isDark } = useTheme();
+interface HeaderProps {
+  onOpenAuth?: (mode: 'login' | 'signup') => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onOpenAuth }) => {
+  const { user, isDemoSession, exitDemoSandbox } = useAuth();
+  const {
+    activeTab,
+    setActiveTab,
+    anomalyFeed,
+    setIsTutorialOpen,
+  } = useDashboard();
+  const { toggleTheme, isDark } = useTheme();
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState<boolean>(false);
 
   // Active alerts count from anomaly feed
   const alertCount = anomalyFeed.filter(
@@ -60,9 +66,9 @@ export const Header: React.FC = () => {
   ).length;
 
   // Role-based navigation items
-  const navItems: { id: DashboardTab; label: string; hasBadge?: boolean }[] = [
-    { id: 'fleet', label: 'Fleet View' },
-    { id: 'station', label: 'Station View' },
+  const navItems: { id: DashboardTab; label: string; elementId?: string; hasBadge?: boolean }[] = [
+    { id: 'fleet', label: 'Fleet' },
+    { id: 'station', label: 'Station', elementId: 'tutorial-nav-station' },
     { id: 'explainability', label: 'Explainability' },
     { id: 'alerts', label: 'Alerts', hasBadge: true },
     ...(user?.role === 'admin'
@@ -71,76 +77,84 @@ export const Header: React.FC = () => {
   ];
 
   return (
-    <header className="w-full h-[68px] min-h-[68px] border-b border-sage-mist/70 dark:border-sage-dark bg-sheetWhite dark:bg-sheetWhite-dark transition-colors duration-200 sticky top-0 z-40 select-none flex items-center">
-      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-4">
-        {/* Section 1: Brand & Subtitle (Left) */}
-        <div
-          onClick={() => setActiveTab('fleet')}
-          className="flex items-center gap-3 cursor-pointer shrink-0"
-        >
-          {/* Arcadia 8px radius authority badge */}
-          <div className="flex items-center justify-center w-9 h-9 rounded-buttons bg-canopy text-white dark:bg-mint-pulse dark:text-bark transition-colors">
-            <CloudLightning className="w-5 h-5" />
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5 leading-none">
-              <span className="text-base font-semibold tracking-tight text-canopy dark:text-white">
-                SkyGuard
-              </span>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate dark:text-slate-dark">
-                AI
-              </span>
+    <>
+      <header className="w-full h-16 bg-white dark:bg-[#1E1A15] border-b border-cardBorder dark:border-[#332C23] px-6 flex items-center justify-between z-40 sticky top-0 transition-colors select-none">
+        {/* Left Section: Brand & - AI Navigation */}
+        <div className="flex items-center gap-8">
+          {/* Brand Logo & Title */}
+          <div
+            onClick={() => setActiveTab('fleet')}
+            className="flex items-center gap-2.5 cursor-pointer shrink-0"
+          >
+            <div className="w-8 h-8 rounded-lg bg-brandDark dark:bg-[#26211A] flex items-center justify-center relative overflow-hidden border border-cardBorder dark:border-[#332C23]">
+              <img
+                src={skyguardLogo}
+                alt="SkyGuard Logo"
+                className="w-full h-full object-cover p-1"
+                onError={(e) => {
+                  (e.currentTarget as any).style.display = 'none';
+                }}
+              />
             </div>
-            <span className="text-[11px] text-slate dark:text-slate-dark mt-0.5 hidden sm:inline font-normal">
-              Atmospheric &amp; AWS Observatory
-            </span>
+            <div className="flex items-baseline gap-1 text-[17px] font-bold tracking-tight text-brandDark dark:text-[#F3EFE8]">
+              <span>SkyGuard</span>
+              <span className="text-brandAccent">- AI</span>
+            </div>
           </div>
+
+          {/* - AI Nav Tabs */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => {
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  id={item.elementId}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`px-3.5 py-5 text-sm tracking-normal transition-all flex items-center gap-1.5 focus:outline-none cursor-pointer border-b-2 font-medium ${
+                    isActive
+                      ? 'font-semibold text-brandAccent border-brandAccent'
+                      : 'border-transparent text-inkMuted dark:text-[#9A938A] hover:text-brandDark dark:hover:text-[#F3EFE8]'
+                  }`}
+                >
+                  <span>{item.label}</span>
+                  {item.hasBadge && alertCount > 0 && (
+                    <span className="inline-flex items-center justify-center px-1.5 py-0.2 text-[10px] font-mono font-bold text-white bg-signalAmber rounded-full min-w-[16px] h-[16px]">
+                      {alertCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Section 2: Center Navigation - Arcadia nav-pill */}
-        <nav className="hidden md:flex items-center p-1 bg-creamPaper dark:bg-canopy-dark/30 rounded-pills border border-sage-mist/60 dark:border-sage-dark">
-          {navItems.map((item) => {
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`px-4 py-1.5 rounded-pills text-xs transition-all flex items-center gap-1.5 focus:outline-none cursor-pointer ${
-                  isActive
-                    ? 'bg-canopy dark:bg-mint-pulse text-white dark:text-bark font-semibold'
-                    : 'text-slate dark:text-slate-dark hover:text-bark dark:hover:text-white font-medium'
-                }`}
-              >
-                <span>{item.label}</span>
-                {item.hasBadge && alertCount > 0 && (
-                  <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold text-white bg-orb-violet rounded-full min-w-[18px] h-[18px]">
-                    {alertCount}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
+        {/* Right Section: Utilities, Role, Bell & Profile */}
+        <div className="flex items-center gap-3">
 
-        {/* Section 3: Header Actions & Profile Avatar (Right) */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          {/* Role Indicator Badge */}
+          {/* Notification bell */}
+          <button
+            onClick={() => setActiveTab('alerts')}
+            className="relative w-8 h-8 rounded-md flex items-center justify-center text-inkMuted hover:text-brandDark dark:hover:text-[#F3EFE8] hover:bg-panelBg dark:hover:bg-[#26211A] transition-colors cursor-pointer"
+            title="Notifications & Alerts"
+          >
+            <Bell className="w-4 h-4" />
+            {alertCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-signalRed ring-2 ring-white dark:ring-[#1E1A15]" />
+            )}
+          </button>
+
+          {/* Role Badges */}
           {user && (
-            <div
-              className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-pills text-[11px] font-bold uppercase tracking-[0.07em] border select-none ${
+            <span
+              className={`hidden sm:inline-block px-2 py-0.5 rounded text-[11px] font-semibold tracking-wider uppercase font-mono ${
                 user.role === 'admin'
-                  ? 'bg-orb-violet/10 text-orb-violet border-orb-violet/30'
-                  : 'bg-canopy/10 dark:bg-mint-pulse/10 text-canopy dark:text-mint-pulse border-canopy/30 dark:border-mint-pulse/30'
+                  ? 'bg-xaiVioletLight dark:bg-xaiViolet/20 text-xaiViolet'
+                  : 'bg-panelBg dark:bg-[#26211A] text-inkMuted dark:text-[#9A938A] border border-cardBorder dark:border-[#332C23]'
               }`}
-              title={`Role: ${user.role.toUpperCase()} (from backend)`}
             >
-              {user.role === 'admin' ? (
-                <Shield className="w-3.5 h-3.5" />
-              ) : (
-                <Activity className="w-3.5 h-3.5" />
-              )}
-              <span>{user.role}</span>
-            </div>
+              {user.role.toUpperCase()}
+            </span>
           )}
 
           {/* Quick theme icon toggle */}
@@ -148,22 +162,63 @@ export const Header: React.FC = () => {
             onClick={toggleTheme}
             aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
             title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-            className="w-9 h-9 rounded-full border border-sage-mist dark:border-sage-dark bg-creamPaper dark:bg-canopy-dark/30 text-bark dark:text-white flex items-center justify-center hover:border-canopy dark:hover:border-mint-pulse transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-md flex items-center justify-center text-inkMuted hover:text-brandDark dark:hover:text-[#F3EFE8] hover:bg-panelBg dark:hover:bg-[#26211A] transition-colors cursor-pointer"
           >
             {isDark ? (
-              <Sun className="w-4 h-4 text-mint-pulse" />
+              <Sun className="w-4 h-4 text-signalAmber" />
             ) : (
-              <Moon className="w-4 h-4 text-canopy" />
+              <Moon className="w-4 h-4 text-inkMuted" />
             )}
           </button>
 
-          {/* Profile Avatar Button -> Navigates to Profile */}
+          {/* Profile Avatar with Signal Green Dot */}
           <ProfileAvatar
             onClick={() => setActiveTab('profile')}
             isActive={activeTab === 'profile'}
           />
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Sandbox Live Mode Banner (Exact - AI specification from code.html) */}
+      {isDemoSession && (
+        <div className="w-full bg-accentSoft dark:bg-[#3A2416] border-b border-accentSoftBorder dark:border-[#4A301E] py-3 px-6 flex items-center justify-between text-xs text-accentText dark:text-[#FF9B60] select-none">
+          <div className="flex items-center gap-2">
+            <Info className="w-4 h-4 text-brandAccent shrink-0" />
+            <span className="font-medium">
+              You're in Live Sandbox Mode — data resets each session
+            </span>
+          </div>
+          <div className="flex items-center gap-5">
+            <button
+              onClick={() => setIsTutorialOpen(true)}
+              className="flex items-center gap-1.5 font-semibold text-brandAccent hover:underline cursor-pointer"
+            >
+              <Compass className="w-3.5 h-3.5" />
+              <span>Interactive Tutorial</span>
+            </button>
+            <button
+              onClick={exitDemoSandbox}
+              className="font-medium hover:underline text-accentText dark:text-[#FF9B60] cursor-pointer"
+            >
+              Exit Demo
+            </button>
+            <button
+              onClick={() => onOpenAuth?.('signup')}
+              className="font-semibold px-2.5 py-1 rounded bg-white dark:bg-[#1E1A15] border border-accentSoftBorder dark:border-[#4A301E] text-brandAccent hover:bg-accentSoft dark:hover:bg-[#26211A] transition-colors cursor-pointer"
+            >
+              Create Free Account
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Secondary System Demo Architectural Modal (Available from navbar / settings) */}
+      <SystemDemoModal
+        isOpen={isDemoModalOpen}
+        onClose={() => setIsDemoModalOpen(false)}
+      />
+    </>
   );
 };
+
+export default Header;

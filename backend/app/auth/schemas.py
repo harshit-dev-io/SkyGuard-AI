@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 from app.auth.models import UserRole
 
@@ -13,6 +14,11 @@ class UserCreate(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=8)
 
 
 class UserResponse(BaseModel):
@@ -31,6 +37,7 @@ class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+    role: Optional[UserRole] = None
 
 
 class TokenRefreshRequest(BaseModel):

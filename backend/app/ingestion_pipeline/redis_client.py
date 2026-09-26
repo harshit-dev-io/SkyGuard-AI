@@ -103,16 +103,12 @@ class RedisPipelineBuffer:
         return late_arrival
 
     async def pop_reordered_dejitter_window(self, station_id: str) -> List[str]:
-        """
-        Retrieves and clears packets in sequence order once the de-jitter window closes.
-        """
         if not self.client:
             await self.connect()
 
         assert self.client is not None
         zset_key = f"dejitter:{station_id}"
 
-        # Get all entries sorted by sequence ascending
         entries = await self.client.zrange(zset_key, 0, -1)
         if entries:
             await self.client.delete(zset_key)
