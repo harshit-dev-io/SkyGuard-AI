@@ -1,12 +1,14 @@
 from datetime import datetime, timezone
 import math
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response, status
 from fastapi.responses import JSONResponse
+import httpx
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config.database import get_db_session
+from app.config.settings import settings
 from app.edge_simulator.models import StationModel
 from app.ingestion_pipeline.models import RawObservationModel
 from .schemas import (
@@ -879,3 +881,71 @@ async def get_station_standardized_report(
         quality_flag=quality_flag,
         certifying_authority="SkyGuard AI Meteorological Quality Assurance Daemon",
     )
+
+
+# ---------------------------------------------------------------------------
+# CARTO Basemap Tile Proxy & Configuration
+# Protects CARTO_API_KEY on the backend without exposing credentials to frontend
+# ---------------------------------------------------------------------------
+
+@router.get("/tiles/config", summary="Get Basemap Configuration")
+async def get_basemap_config() -> Dict[str, Any]:
+    """
+    Returns public basemap metadata and proxy URL pattern without exposing credentials.
+    """
+    return {
+        "style": settings.CARTO_STYLE,
+        "tile_url_pattern": f"{settings.API_V1_PREFIX}/tiles/{settings.CARTO_STYLE}/{{z}}/{{x}}/{{y}}.png",
+        "has_upstream_key": bool(settings.CARTO_API_KEY),
+    }
+
+
+@router.get("/tiles/{style}/{z}/{x}/{y}.png", summary="Secure CARTO Basemap Tile Proxy")
+async def get_carto_tile(
+    style: str = Path(..., description="CARTO style, e.g. dark_all, light_all, voyager"),
+    z: int = Path(..., ge=0, le=22, description="Tile zoom level"),
+    x: int = Path(..., ge=0, description="Tile X coordinate"),
+    y: int = Path(..., ge=0, description="Tile Y coordinate"),
+):
+    """
+    Secure backend proxy for CARTO basemap raster tiles.
+    Keeps CARTO_API_KEY protected in backend server environment without exposing it to the frontend.
+    Applies HTTP cache headers so tiles are cached by the browser and downstream caches.
+    """
+    target_url = f"https://basemaps.cartocdn.com/rastertiles/{style}/{z}/{x}/{y}.png"
+    params = {}
+    if settings.CARTO_API_KEY:
+        params["api_key"] = settings.CARTO_API_KEY
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(target_url, params=params)
+            if resp.status_code == 200:
+                return Response(
+                    content=resp.content,
+                    media_type="image/png",
+                    headers={
+                        "Cache-Control": "public, max-age=604800, immutable",
+                        "Content-Type": "image/png",
+                    },
+                )
+
+            # Fallback to direct public tile without key if upstream key returns 401/403
+            if settings.CARTO_API_KEY and resp.status_code in (401, 403):
+                fallback_resp = await client.get(target_url)
+                if fallback_resp.status_code == 200:
+                    return Response(
+                        content=fallback_resp.content,
+                        media_type="image/png",
+                        headers={
+                            "Cache-Control": "public, max-age=604800, immutable",
+                            "Content-Type": "image/png",
+                        },
+                    )
+
+            return Response(status_code=resp.status_code, content=resp.content, media_type="text/plain")
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Upstream basemap tile proxy failure: {exc}",
+        )

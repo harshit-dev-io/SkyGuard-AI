@@ -224,9 +224,10 @@ export const IndiaSpatialMap: React.FC = () => {
 
     const tileUrl = CARTO_CONFIG.getTileUrl(isDark ? 'dark_all' : 'voyager');
     const tileLayer = L.tileLayer(tileUrl, {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+      maxZoom: 16,
+      attribution: CARTO_CONFIG.attribution,
     }).addTo(map);
+
     tileLayerRef.current = tileLayer;
 
     // Layer groups for markers & topological neighbor hairlines

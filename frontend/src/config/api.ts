@@ -40,18 +40,19 @@ export const MAP_ENDPOINTS = {
 };
 
 /**
- * CARTO Basemap Configuration
- * Key stored securely in environment: VITE_CARTO_API_KEY
- * Tile URL constructed dynamically using CARTO rastertiles endpoint.
+ * Basemap Configuration
+ * Uses high-performance, dark-mode GIS tiles (Esri World Dark/Light Gray Canvas).
+ * Requires ZERO API keys, has NO watermarks, and never exposes credentials in code or client bundles.
  */
 export const CARTO_CONFIG = {
-  API_KEY: import.meta.env.VITE_CARTO_API_KEY || '',
-  STYLE: import.meta.env.VITE_CARTO_STYLE || 'dark_all',
+  STYLE: 'dark_all',
   getTileUrl: (style?: string) => {
-    const s = style || CARTO_CONFIG.STYLE;
-    const key = CARTO_CONFIG.API_KEY;
-    return `https://basemaps.cartocdn.com/rastertiles/${s}/{z}/{x}/{y}.png${key ? `?key=${key}` : ''}`;
+    const isDark = !style || style.includes('dark');
+    return isDark
+      ? 'https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+      : 'https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
   },
+  attribution: '&copy; <a href="https://www.esri.com">Esri</a> &mdash; Esri, DeLorme, NAVTEQ',
 };
 
 export default API_BASE_URL;
