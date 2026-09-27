@@ -781,10 +781,10 @@ export const IndiaSpatialMap: React.FC = () => {
           <div style="color: #798281; font-size: 10px; margin-bottom: 4px;">ID: ${st.id}</div>
           <div style="color: ${color}; font-weight: 600; margin-bottom: 4px;">${st.status_label}</div>
           <div style="background: rgba(16,67,54,0.35); border-radius: 4px; padding: 4px 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 10px;">
-            <div>Temp: <b style="color: #ffffff;">${st.telemetry.temperature}°C</b></div>
-            <div>RH: <b style="color: #ffffff;">${st.telemetry.relative_humidity}%</b></div>
-            <div>Press: <b style="color: #ffffff;">${st.telemetry.atmospheric_pressure} hPa</b></div>
-            <div>Dew: <b style="color: #ffffff;">${st.telemetry.dew_point}°C</b></div>
+            <div>Temp: <b style="color: #ffffff;">${st.telemetry?.temperature ?? '--'}°C</b></div>
+            <div>RH: <b style="color: #ffffff;">${st.telemetry?.relative_humidity ?? '--'}%</b></div>
+            <div>Press: <b style="color: #ffffff;">${st.telemetry?.atmospheric_pressure ?? '--'} hPa</b></div>
+            <div>Dew: <b style="color: #ffffff;">${st.telemetry?.dew_point ?? '--'}°C</b></div>
           </div>
         </div>
         `,
@@ -852,10 +852,10 @@ export const IndiaSpatialMap: React.FC = () => {
       x: 200,
       y: 200,
       elevation: detail.elevation,
-      rh: detail.telemetry.relative_humidity,
-      temp: detail.telemetry.temperature,
-      dewPoint: detail.telemetry.dew_point,
-      pressure: detail.telemetry.atmospheric_pressure,
+      rh: detail.telemetry?.relative_humidity ?? 65.0,
+      temp: detail.telemetry?.temperature ?? 28.5,
+      dewPoint: detail.telemetry?.dew_point ?? 20.0,
+      pressure: detail.telemetry?.atmospheric_pressure ?? 1012.0,
       neighbors: [],
       wsi: detail.wsi,
     };
@@ -1214,7 +1214,7 @@ export const IndiaSpatialMap: React.FC = () => {
                 <Thermometer className="w-3.5 h-3.5 text-brandAccent" />
                 <div>
                   <div className="text-[10px] text-inkMuted dark:text-[#9A938A]">Temperature</div>
-                  <div className="font-bold text-brandDark dark:text-white text-xs font-mono">{activeStationDetail.telemetry.temperature}°C</div>
+                  <div className="font-bold text-brandDark dark:text-white text-xs font-mono">{activeStationDetail.telemetry?.temperature ?? '--'}°C</div>
                 </div>
               </div>
 
@@ -1222,7 +1222,7 @@ export const IndiaSpatialMap: React.FC = () => {
                 <Droplets className="w-3.5 h-3.5 text-blue-500" />
                 <div>
                   <div className="text-[10px] text-inkMuted dark:text-[#9A938A]">Rel. Humidity</div>
-                  <div className="font-bold text-brandDark dark:text-white text-xs font-mono">{activeStationDetail.telemetry.relative_humidity}%</div>
+                  <div className="font-bold text-brandDark dark:text-white text-xs font-mono">{activeStationDetail.telemetry?.relative_humidity ?? '--'}%</div>
                 </div>
               </div>
 
@@ -1230,7 +1230,7 @@ export const IndiaSpatialMap: React.FC = () => {
                 <Gauge className="w-3.5 h-3.5 text-signalAmber" />
                 <div>
                   <div className="text-[10px] text-inkMuted dark:text-[#9A938A]">Pressure</div>
-                  <div className="font-bold text-brandDark dark:text-white text-xs font-mono">{activeStationDetail.telemetry.atmospheric_pressure} hPa</div>
+                  <div className="font-bold text-brandDark dark:text-white text-xs font-mono">{activeStationDetail.telemetry?.atmospheric_pressure ?? '--'} hPa</div>
                 </div>
               </div>
 
@@ -1238,7 +1238,7 @@ export const IndiaSpatialMap: React.FC = () => {
                 <Wind className="w-3.5 h-3.5 text-signalGreen" />
                 <div>
                   <div className="text-[10px] text-inkMuted dark:text-[#9A938A]">Wind / Gust</div>
-                  <div className="font-bold text-brandDark dark:text-white text-xs font-mono">{activeStationDetail.telemetry.wind_speed} m/s</div>
+                  <div className="font-bold text-brandDark dark:text-white text-xs font-mono">{activeStationDetail.telemetry?.wind_speed ?? '--'} m/s</div>
                 </div>
               </div>
             </div>

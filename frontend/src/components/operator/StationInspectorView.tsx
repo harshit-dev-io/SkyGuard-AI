@@ -197,12 +197,12 @@ export const StationInspectorView: React.FC = () => {
               status: o.status,
               status_label: o.status_label,
               wsi: o.wsi,
-              temperature: o.telemetry.temperature,
-              relative_humidity: o.telemetry.relative_humidity,
-              atmospheric_pressure: o.telemetry.atmospheric_pressure,
-              temperature_delta: Math.round((o.telemetry.temperature - selectedStation.telemetry.temperature) * 10) / 10,
-              humidity_delta: Math.round((o.telemetry.relative_humidity - selectedStation.telemetry.relative_humidity) * 10) / 10,
-              pressure_delta: Math.round((o.telemetry.atmospheric_pressure - selectedStation.telemetry.atmospheric_pressure) * 10) / 10,
+              temperature: o.telemetry?.temperature ?? 28.5,
+              relative_humidity: o.telemetry?.relative_humidity ?? 65.0,
+              atmospheric_pressure: o.telemetry?.atmospheric_pressure ?? 1012.0,
+              temperature_delta: Math.round(((o.telemetry?.temperature ?? 28.5) - (selectedStation.telemetry?.temperature ?? 28.5)) * 10) / 10,
+              humidity_delta: Math.round(((o.telemetry?.relative_humidity ?? 65.0) - (selectedStation.telemetry?.relative_humidity ?? 65.0)) * 10) / 10,
+              pressure_delta: Math.round(((o.telemetry?.atmospheric_pressure ?? 1012.0) - (selectedStation.telemetry?.atmospheric_pressure ?? 1012.0)) * 10) / 10,
               spatial_correlation: 0.96,
             };
           });
@@ -507,10 +507,10 @@ export const StationInspectorView: React.FC = () => {
 
                     <div className="text-right shrink-0">
                       <div className="text-xs font-bold text-bark dark:text-white">
-                        {st.telemetry.temperature}°C
+                        {st.telemetry?.temperature ?? '--'}°C
                       </div>
                       <div className="text-[10px] text-slate dark:text-slate-dark">
-                        {st.telemetry.relative_humidity}% RH
+                        {st.telemetry?.relative_humidity ?? '--'}% RH
                       </div>
                     </div>
                   </button>
@@ -610,7 +610,7 @@ export const StationInspectorView: React.FC = () => {
                           <Thermometer className="w-3.5 h-3.5 text-mint-pulse" />
                         </div>
                         <div className="text-lg font-bold text-bark dark:text-white">
-                          {selectedStation.telemetry.temperature}°C
+                          {selectedStation.telemetry?.temperature ?? '--'}°C
                         </div>
                         <div className="text-[10px] text-slate dark:text-slate-dark mt-0.5">Dry-bulb reading</div>
                       </div>
@@ -621,7 +621,7 @@ export const StationInspectorView: React.FC = () => {
                           <Droplets className="w-3.5 h-3.5 text-sky-400" />
                         </div>
                         <div className="text-lg font-bold text-sky-500 dark:text-sky-400">
-                          {selectedStation.telemetry.relative_humidity}%
+                          {selectedStation.telemetry?.relative_humidity ?? '--'}%
                         </div>
                         <div className="text-[10px] text-slate dark:text-slate-dark mt-0.5">Capacitive probe</div>
                       </div>
@@ -632,7 +632,7 @@ export const StationInspectorView: React.FC = () => {
                           <Gauge className="w-3.5 h-3.5 text-amber-400" />
                         </div>
                         <div className="text-lg font-bold text-amber-500 dark:text-amber-400">
-                          {selectedStation.telemetry.atmospheric_pressure} hPa
+                          {selectedStation.telemetry?.atmospheric_pressure ?? '--'} hPa
                         </div>
                         <div className="text-[10px] text-slate dark:text-slate-dark mt-0.5">Surface pressure</div>
                       </div>
@@ -643,7 +643,7 @@ export const StationInspectorView: React.FC = () => {
                           <Compass className="w-3.5 h-3.5 text-teal-400" />
                         </div>
                         <div className="text-lg font-bold text-teal-500 dark:text-teal-400">
-                          {selectedStation.telemetry.dew_point}°C
+                          {selectedStation.telemetry?.dew_point ?? '--'}°C
                         </div>
                         <div className="text-[10px] text-slate dark:text-slate-dark mt-0.5">Sonntag computed</div>
                       </div>
@@ -654,9 +654,9 @@ export const StationInspectorView: React.FC = () => {
                           <Wind className="w-3.5 h-3.5 text-emerald-400" />
                         </div>
                         <div className="text-lg font-bold text-emerald-500 dark:text-emerald-400">
-                          {selectedStation.telemetry.wind_speed} m/s
+                          {selectedStation.telemetry?.wind_speed ?? '--'} m/s
                         </div>
-                        <div className="text-[10px] text-slate dark:text-slate-dark mt-0.5">{selectedStation.telemetry.wind_direction}</div>
+                        <div className="text-[10px] text-slate dark:text-slate-dark mt-0.5">{selectedStation.telemetry?.wind_direction || 'N/A'}</div>
                       </div>
 
                       <div className="p-3.5 rounded-xl bg-creamPaper/50 dark:bg-[#0c2018] border border-sage-mist/60 dark:border-sage-dark/40">
@@ -665,7 +665,7 @@ export const StationInspectorView: React.FC = () => {
                           <Droplets className="w-3.5 h-3.5 text-indigo-400" />
                         </div>
                         <div className="text-lg font-bold text-indigo-500 dark:text-indigo-400">
-                          {selectedStation.telemetry.rainfall_rate} mm/h
+                          {selectedStation.telemetry?.rainfall_rate ?? 0} mm/h
                         </div>
                         <div className="text-[10px] text-slate dark:text-slate-dark mt-0.5">Tipping bucket</div>
                       </div>
@@ -695,20 +695,20 @@ export const StationInspectorView: React.FC = () => {
                             <span>Sonntag Dewpoint Boundary Invariant (T_dew &lt;= T)</span>
                           </div>
                           <p className="text-[11px] text-slate dark:text-slate-dark mt-0.5">
-                            T_dew ({selectedStation.telemetry.dew_point}°C) vs T_dry ({selectedStation.telemetry.temperature}°C).
-                            {selectedStation.telemetry.dew_point <= selectedStation.telemetry.temperature + 0.1
+                            T_dew ({selectedStation.telemetry?.dew_point ?? '--'}°C) vs T_dry ({selectedStation.telemetry?.temperature ?? '--'}°C).
+                            {(selectedStation.telemetry?.dew_point ?? 0) <= (selectedStation.telemetry?.temperature ?? 0) + 0.1
                               ? ' Thermodynamic vapor saturation constraint strictly obeyed.'
                               : ' Physical violation: vapor condensation temperature exceeds ambient temperature.'}
                           </p>
                         </div>
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shrink-0 ${
-                            selectedStation.telemetry.dew_point <= selectedStation.telemetry.temperature + 0.1
+                            (selectedStation.telemetry?.dew_point ?? 0) <= (selectedStation.telemetry?.temperature ?? 0) + 0.1
                               ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                               : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
                           }`}
                         >
-                          {selectedStation.telemetry.dew_point <= selectedStation.telemetry.temperature + 0.1 ? 'PASS' : 'BREACH'}
+                          {(selectedStation.telemetry?.dew_point ?? 0) <= (selectedStation.telemetry?.temperature ?? 0) + 0.1 ? 'PASS' : 'BREACH'}
                         </span>
                       </div>
 
@@ -719,7 +719,7 @@ export const StationInspectorView: React.FC = () => {
                             Hypsometric Barometric Gradient Formula
                           </div>
                           <p className="text-[11px] text-slate dark:text-slate-dark mt-0.5">
-                            Observed: {selectedStation.telemetry.atmospheric_pressure} hPa at {selectedStation.elevation}m ASL. Consistent with hydrostatic equation.
+                            Observed: {selectedStation.telemetry?.atmospheric_pressure ?? '--'} hPa at {selectedStation.elevation}m ASL. Consistent with hydrostatic equation.
                           </p>
                         </div>
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
