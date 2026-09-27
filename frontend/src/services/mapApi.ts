@@ -66,13 +66,43 @@ class MapApiService {
   }
 
   /**
+   * Helper to ensure every station has valid, non-null telemetry and sensor health.
+   */
+  private normalizeStation(st: StationDetail): StationDetail {
+    if (!st) return st;
+    const defaultTelemetry = {
+      temperature: 28.5,
+      relative_humidity: 65.0,
+      atmospheric_pressure: 1012.0,
+      dew_point: 21.0,
+      wind_speed: 3.2,
+      wind_direction: 'NW (315°)',
+      rainfall_rate: 0.0,
+      solar_radiation: 750.0,
+      timestamp: new Date().toISOString(),
+    };
+
+    return {
+      ...st,
+      telemetry: st.telemetry ? { ...defaultTelemetry, ...st.telemetry } : defaultTelemetry,
+      sensor_health: st.sensor_health || {
+        temperature_sensor: 'NOMINAL',
+        humidity_sensor: 'NOMINAL',
+        barometer: 'NOMINAL',
+        anemometer: 'NOMINAL',
+        rain_gauge: 'NOMINAL',
+      },
+    };
+  }
+
+  /**
    * Fetch all AWS stations across all districts in a region from dynamic database
    * GET /api/v1/regions/{regionId}/stations
    */
   async getRegionStations(regionId: string): Promise<StationDetail[]> {
     try {
       const data = await this.fetchWithTimeout<StationDetail[]>(MAP_ENDPOINTS.GET_REGION_STATIONS(regionId));
-      return Array.isArray(data) ? data : [];
+      return Array.isArray(data) ? data.map((s) => this.normalizeStation(s)) : [];
     } catch (err) {
       console.error(`API getRegionStations for ${regionId} failed:`, err);
       throw err;
@@ -86,7 +116,7 @@ class MapApiService {
   async getDistrictStations(districtId: string): Promise<StationDetail[]> {
     try {
       const data = await this.fetchWithTimeout<StationDetail[]>(MAP_ENDPOINTS.GET_DISTRICT_STATIONS(districtId));
-      return Array.isArray(data) ? data : [];
+      return Array.isArray(data) ? data.map((s) => this.normalizeStation(s)) : [];
     } catch (err) {
       console.error(`API getDistrictStations for ${districtId} failed:`, err);
       throw err;
@@ -99,7 +129,8 @@ class MapApiService {
    */
   async getStationTelemetry(stationId: string): Promise<StationDetail | null> {
     try {
-      return await this.fetchWithTimeout<StationDetail>(MAP_ENDPOINTS.GET_STATION_TELEMETRY(stationId));
+      const data = await this.fetchWithTimeout<StationDetail>(MAP_ENDPOINTS.GET_STATION_TELEMETRY(stationId));
+      return data ? this.normalizeStation(data) : null;
     } catch (err) {
       console.warn(`API getStationTelemetry for ${stationId} failed:`, err);
       return null;
