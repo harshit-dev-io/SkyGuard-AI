@@ -170,6 +170,10 @@ class Settings(BaseSettings):
     WIS2_STORAGE_DIR: str = str(Path(__file__).resolve().parent.parent.parent / "data" / "wis2_objects")
     WIS2_BASE_URL: str = "http://localhost:8000/api/v1/wis2/data"
 
+    # CARTO Basemap Configuration (Protected backend proxy, read from environment only)
+    CARTO_API_KEY: Optional[str] = None
+    CARTO_STYLE: str = "dark_all"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

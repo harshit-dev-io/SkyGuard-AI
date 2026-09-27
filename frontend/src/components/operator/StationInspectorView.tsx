@@ -242,8 +242,8 @@ export const StationInspectorView: React.FC = () => {
 
     const tileUrl = CARTO_CONFIG.getTileUrl(isDark ? 'dark_all' : 'light_all');
     L.tileLayer(tileUrl, {
-      maxZoom: 19,
-      attribution: '&copy; CARTO &copy; OpenStreetMap contributors',
+      maxZoom: 16,
+      attribution: CARTO_CONFIG.attribution,
     }).addTo(map);
 
     markersLayerRef.current = L.layerGroup().addTo(map);
