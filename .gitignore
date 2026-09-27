@@ -41,3 +41,7 @@ settings.json
 docs/
 
 *.jar
+
+stitch_skyguard_ai_meridian_redesign/
+
+FRONTEND_INTERFACE_DOCUMENTATION.md

@@ -5,7 +5,9 @@ import logging
 from typing import Optional
 import uuid
 import aiomqtt
+import ssl
 from aiokafka import AIOKafkaProducer
+from aiokafka.helpers import create_ssl_context
 
 from app.config.database import async_session_factory
 from app.config.settings import settings
@@ -31,16 +33,37 @@ class IngestionPipelineWorker:
         try:
             await redis_buffer.connect()
 
-            # Initialize Kafka Producer for observations.raw
-            self.kafka_producer = AIOKafkaProducer(
-                bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,
-                client_id=f"{getattr(settings, 'KAFKA_CLIENT_ID', 'skyguard')}-raw-producer",
-            )
+            # 2. Initialize Kafka Producer supporting both SASL_SSL and PLAINTEXT
+            sec_proto = getattr(settings, "KAFKA_SECURITY_PROTOCOL", "PLAINTEXT").upper()
+            producer_kwargs = {
+                "bootstrap_servers": settings.KAFKA_BOOTSTRAP_SERVERS,
+                "client_id": f"{getattr(settings, 'KAFKA_CLIENT_ID', 'skyguard')}-raw-producer",
+            }
+            if sec_proto in ("SASL_SSL", "SSL"):
+                ssl_context = create_ssl_context()
+                ssl_context.check_hostname = False
+                ssl_context.verify_mode = ssl.CERT_NONE
+                producer_kwargs["security_protocol"] = sec_proto
+                producer_kwargs["ssl_context"] = ssl_context
+            elif sec_proto in ("SASL_PLAINTEXT",):
+                producer_kwargs["security_protocol"] = sec_proto
+            else:
+                producer_kwargs["security_protocol"] = "PLAINTEXT"
+
+            if sec_proto in ("SASL_SSL", "SASL_PLAINTEXT"):
+                if settings.KAFKA_SASL_MECHANISM:
+                    producer_kwargs["sasl_mechanism"] = settings.KAFKA_SASL_MECHANISM
+                if settings.KAFKA_SASL_USERNAME:
+                    producer_kwargs["sasl_plain_username"] = settings.KAFKA_SASL_USERNAME
+                if settings.KAFKA_SASL_PASSWORD:
+                    producer_kwargs["sasl_plain_password"] = settings.KAFKA_SASL_PASSWORD
+
+            self.kafka_producer = AIOKafkaProducer(**producer_kwargs)
             await self.kafka_producer.start()
 
             self.is_running = True
             self._worker_task = asyncio.create_task(self._consume_loop())
-            logger.info("Ingestion pipeline worker started (Listening to EMQX MQTT, forwarding to Kafka).")
+            logger.info("Ingestion pipeline worker started (Listening to MQTT, forwarding to Kafka).")
         except Exception as err:
             logger.error(f"Failed to initialize Ingestion Worker: {err}", exc_info=True)
             raise err
@@ -55,12 +78,14 @@ class IngestionPipelineWorker:
         logger.info("Ingestion pipeline worker stopped.")
 
     async def _consume_loop(self):
+        mqtt_host = getattr(settings, "MQTT_BROKER_HOST", "localhost")
+        mqtt_port = getattr(settings, "MQTT_BROKER_PORT", 1883)
         while self.is_running:
             try:
-                async with aiomqtt.Client("localhost", port=1883) as client:
+                async with aiomqtt.Client(hostname=mqtt_host, port=mqtt_port) as client:
                     self.client = client
                     await client.subscribe(self.topic)
-                    logger.info(f"Connected to EMQX Broker and subscribed to {self.topic}")
+                    logger.info(f"Connected to MQTT Broker ({mqtt_host}:{mqtt_port}) and subscribed to {self.topic}")
 
                     async for message in client.messages:
                         if not self.is_running:

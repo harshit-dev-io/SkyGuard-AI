@@ -13,19 +13,30 @@ class RedisPipelineBuffer:
         self.client: Optional[aioredis.Redis] = None
 
     async def connect(self):
-        if self.client is None:
-            self.pool = aioredis.ConnectionPool(
-                host=settings.REDIS_HOST,
-                port=settings.REDIS_PORT,
-                db=settings.REDIS_DB,
-                password=settings.REDIS_PASSWORD,
-                decode_responses=True,
-                max_connections=50,
-            )
-            self.client = aioredis.Redis(connection_pool=self.pool)
+            # Support standard redis (Docker/Railway) and TLS redis (Upstash)
+            use_ssl = getattr(settings, "REDIS_SSL", False) or "upstash.io" in settings.REDIS_HOST
+            scheme = "rediss" if use_ssl else "redis"
+            
+            if settings.REDIS_PASSWORD:
+                if use_ssl and "upstash.io" in settings.REDIS_HOST:
+                    auth = f"default:{settings.REDIS_PASSWORD}@"
+                else:
+                    auth = f":{settings.REDIS_PASSWORD}@"
+            else:
+                auth = ""
+
+            redis_url = f"{scheme}://{auth}{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}"
+            
+            client_kwargs = {
+                "decode_responses": True,
+                "max_connections": 50,
+            }
+            if use_ssl:
+                client_kwargs["ssl_cert_reqs"] = None
+
+            self.client = aioredis.from_url(redis_url, **client_kwargs)
             await self.client.ping()
             logger.info("Connected to Redis Ingestion Buffer.")
-
     async def disconnect(self):
         if self.client:
             await self.client.aclose()

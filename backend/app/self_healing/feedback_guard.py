@@ -19,13 +19,18 @@ class ImputationFeedbackGuard:
 
     async def _get_client(self) -> aioredis.Redis:
         if self._redis_client is None:
-            self._redis_client = aioredis.Redis(
-                host=settings.REDIS_HOST,
-                port=settings.REDIS_PORT,
-                db=settings.REDIS_DB,
-                password=settings.REDIS_PASSWORD,
-                decode_responses=True,
-            )
+            use_ssl = getattr(settings, "REDIS_SSL", False) or "upstash.io" in settings.REDIS_HOST
+            redis_kwargs = {
+                "host": settings.REDIS_HOST,
+                "port": settings.REDIS_PORT,
+                "db": settings.REDIS_DB,
+                "password": settings.REDIS_PASSWORD,
+                "decode_responses": True,
+            }
+            if use_ssl:
+                redis_kwargs["ssl"] = True
+                redis_kwargs["ssl_cert_reqs"] = None
+            self._redis_client = aioredis.Redis(**redis_kwargs)
         return self._redis_client
 
     async def quarantine_station(self, station_id: str):
