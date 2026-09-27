@@ -66,12 +66,23 @@ class KafkaLagProbe:
     @classmethod
     def get_consumer_lag(cls) -> int:
         try:
-            consumer = KafkaConsumer(
-                bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,
-                group_id=settings.KAFKA_CONSUMER_GROUP,
-                enable_auto_commit=False,
-                request_timeout_ms=15000,
-            )
+            consumer_kwargs = {
+                "bootstrap_servers": settings.KAFKA_BOOTSTRAP_SERVERS,
+                "group_id": settings.KAFKA_CONSUMER_GROUP,
+                "enable_auto_commit": False,
+                "request_timeout_ms": 15000,
+            }
+            sec_proto = getattr(settings, "KAFKA_SECURITY_PROTOCOL", "PLAINTEXT").upper()
+            if sec_proto in ("SASL_SSL", "SSL", "SASL_PLAINTEXT"):
+                consumer_kwargs["security_protocol"] = sec_proto
+                if settings.KAFKA_SASL_MECHANISM:
+                    consumer_kwargs["sasl_mechanism"] = settings.KAFKA_SASL_MECHANISM
+                if settings.KAFKA_SASL_USERNAME:
+                    consumer_kwargs["sasl_plain_username"] = settings.KAFKA_SASL_USERNAME
+                if settings.KAFKA_SASL_PASSWORD:
+                    consumer_kwargs["sasl_plain_password"] = settings.KAFKA_SASL_PASSWORD
+
+            consumer = KafkaConsumer(**consumer_kwargs)
             partitions = consumer.partitions_for_topic(settings.KAFKA_TOPIC_RAW_OBSERVATIONS)
             if not partitions:
                 consumer.close()

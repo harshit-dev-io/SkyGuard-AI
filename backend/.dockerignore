@@ -1,1 +1,30 @@
+# Environment variables
 .env
+.env.local
+.env.*.local
+
+# Python caches and artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+celerybeat-schedule*
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Version control
+.git/
+.gitignore
+
+# MQTT & WIS2 runtime data
+data/wis2_objects/*
+mosquitto/data/*
+mosquitto/log/*
+*.log

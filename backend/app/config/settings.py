@@ -20,14 +20,30 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://skyguard_admin:skyguard_secure_pwd@localhost:5432/skyguard"
     DATABASE_SYNC_URL: str = "postgresql+psycopg2://skyguard_admin:skyguard_secure_pwd@localhost:5432/skyguard"
 
-    @field_validator("DATABASE_URL", "DATABASE_SYNC_URL", mode="before")
+    @field_validator("DATABASE_URL", mode="before")
     @classmethod
-    def expand_db_urls(cls, v: Any) -> Any:
-        if isinstance(v, str) and "${" in v:
-            expanded = os.path.expandvars(v)
-            if "${" in expanded:
-                return "postgresql+asyncpg://skyguard_admin:skyguard_secure_pwd@localhost:5432/skyguard" if "asyncpg" in v else "postgresql+psycopg2://skyguard_admin:skyguard_secure_pwd@localhost:5432/skyguard"
-            return expanded
+    def normalize_database_url(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            if "${" in v:
+                v = os.path.expandvars(v)
+            if v.startswith("postgres://"):
+                v = "postgresql+asyncpg://" + v[len("postgres://"):]
+            elif v.startswith("postgresql://") and "+asyncpg" not in v:
+                v = "postgresql+asyncpg://" + v[len("postgresql://"):]
+        return v
+
+    @field_validator("DATABASE_SYNC_URL", mode="before")
+    @classmethod
+    def normalize_database_sync_url(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            if "${" in v:
+                v = os.path.expandvars(v)
+            if v.startswith("postgres://"):
+                v = "postgresql+psycopg2://" + v[len("postgres://"):]
+            elif v.startswith("postgresql://") and "+psycopg2" not in v and "+asyncpg" not in v:
+                v = "postgresql+psycopg2://" + v[len("postgresql://"):]
+            elif "+asyncpg" in v:
+                v = v.replace("+asyncpg", "+psycopg2")
         return v
 
 
@@ -76,6 +92,7 @@ class Settings(BaseSettings):
     REDIS_DB: int = 0
     REDIS_PASSWORD: Optional[str] = None
     REDIS_IS_CLUSTER: bool = False
+    REDIS_SSL: bool = False
 
     DEDUP_TTL_SECONDS: int = 86400
     DEJITTER_WINDOW_SECONDS: float = 30.0
@@ -142,9 +159,13 @@ class Settings(BaseSettings):
     ADAPTIVE_UKF_Q_STEP_DOWN: float = 0.85
     MAX_ALLOWABLE_ECE: float = 0.08
 
+    # MQTT Settings
+    MQTT_BROKER_HOST: str = "mosquitto"
+    MQTT_BROKER_PORT: int = 1883
+
     # WIS2 / WMO Settings
     WIS2_CENTRE_ID: str = "in-imd-delhi"
-    WIS2_GB_HOST: str = "localhost"
+    WIS2_GB_HOST: str = "mosquitto"
     WIS2_GB_PORT: int = 1883
     WIS2_STORAGE_DIR: str = str(Path(__file__).resolve().parent.parent.parent / "data" / "wis2_objects")
     WIS2_BASE_URL: str = "http://localhost:8000/api/v1/wis2/data"

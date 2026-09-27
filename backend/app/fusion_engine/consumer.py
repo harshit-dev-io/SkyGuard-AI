@@ -3,7 +3,9 @@ from datetime import datetime, timezone
 import json
 import logging
 from typing import Any, Dict
+import ssl
 from aiokafka import AIOKafkaConsumer
+from aiokafka.helpers import create_ssl_context
 
 from app.config.database import async_session_factory
 from app.config.settings import settings
@@ -44,13 +46,33 @@ class LiveEvidencePersisterDaemon:
         )
 
     async def start(self):
-        self.consumer = AIOKafkaConsumer(
-            *EVIDENCE_TOPICS,
-            bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,
-            group_id="skyguard-live-persister-group-v2",
-            auto_offset_reset="earliest",
-            enable_auto_commit=True,
-        )
+        sec_proto = getattr(settings, "KAFKA_SECURITY_PROTOCOL", "PLAINTEXT").upper()
+        consumer_kwargs = {
+            "bootstrap_servers": settings.KAFKA_BOOTSTRAP_SERVERS,
+            "group_id": "skyguard-live-persister-group-v2",
+            "auto_offset_reset": "earliest",
+            "enable_auto_commit": True,
+        }
+        if sec_proto in ("SASL_SSL", "SSL"):
+            ssl_context = create_ssl_context()
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
+            consumer_kwargs["security_protocol"] = sec_proto
+            consumer_kwargs["ssl_context"] = ssl_context
+        elif sec_proto in ("SASL_PLAINTEXT",):
+            consumer_kwargs["security_protocol"] = sec_proto
+        else:
+            consumer_kwargs["security_protocol"] = "PLAINTEXT"
+
+        if sec_proto in ("SASL_SSL", "SASL_PLAINTEXT"):
+            if settings.KAFKA_SASL_MECHANISM:
+                consumer_kwargs["sasl_mechanism"] = settings.KAFKA_SASL_MECHANISM
+            if settings.KAFKA_SASL_USERNAME:
+                consumer_kwargs["sasl_plain_username"] = settings.KAFKA_SASL_USERNAME
+            if settings.KAFKA_SASL_PASSWORD:
+                consumer_kwargs["sasl_plain_password"] = settings.KAFKA_SASL_PASSWORD
+
+        self.consumer = AIOKafkaConsumer(*EVIDENCE_TOPICS, **consumer_kwargs)
         await self.consumer.start()
         self.is_running = True
         self._worker_task = asyncio.create_task(self._consume_loop())
