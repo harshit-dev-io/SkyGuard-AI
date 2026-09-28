@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"secondary-fixed-dim":"#d3bbff","on-error-container":"#93000a","surface-variant":"#e6e2de","tertiary-fixed-dim":"#6add8d","surface-container-low":"#f7f3ef","on-background":"#1c1b19","inverse-primary":"#ffb597","on-secondary":"#ffffff","inverse-surface":"#32302e","on-primary-container":"#fffbff","primary-fixed-dim":"#ffb597","secondary-container":"#8b4ef7","tertiary":"#006a35","on-primary-fixed":"#360f00","on-error":"#ffffff","primary-fixed":"#ffdbcd","on-tertiary-fixed":"#00210c","secondary":"#712edd","outline":"#8d7166","surface-tint":"#a43d00","on-surface":"#1c1b19","tertiary-container":"#008645","on-secondary-fixed-variant":"#5b00c5","primary":"#a03b00","on-secondary-fixed":"#250059","secondary-fixed":"#ebddff","background":"#fdf8f5","on-tertiary-container":"#f6fff4","error":"#ba1a1a","on-tertiary":"#ffffff","tertiary-fixed":"#86faa7","primary-container":"#c94c00","on-surface-variant":"#594138","surface":"#fdf8f5","surface-container-highest":"#e6e2de","surface-container-high":"#ece7e4","outline-variant":"#e1bfb2","error-container":"#ffdad6","surface-container":"#f2ede9","inverse-on-surface":"#f5f0ec","surface-container-lowest":"#ffffff","on-secondary-container":"#fffbff","on-primary-fixed-variant":"#7d2d00","surface-bright":"#fdf8f5","surface-dim":"#ded9d6","on-tertiary-fixed-variant":"#005228","on-primary":"#ffffff"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-xl":"1.5rem","space-md":"0.75rem",margin:"1.5rem","space-lg":"1rem","gutter-dense":"0.5rem",gutter:"1rem","space-xs":"0.25rem","space-sm":"0.5rem"},fontFamily:{"label-lg":["Inter"],"body-lg":["Inter"],"headline-xl":["Inter"],"headline-sm":["Inter"],"body-sm":["Inter"],"telemetry-lg":["JetBrains Mono"],"body-md":["Inter"],"telemetry-sm":["JetBrains Mono"],"telemetry-md":["JetBrains Mono"],"label-sm":["Inter"],"headline-lg":["Inter"]},fontSize:{"label-lg":["0.875rem",{lineHeight:"1.25rem",fontWeight:"500"}],"body-lg":["1rem",{lineHeight:"1.5rem",fontWeight:"400"}],"headline-xl":["2rem",{lineHeight:"2.5rem",letterSpacing:"-0.02em",fontWeight:"600"}],"headline-sm":["1.125rem",{lineHeight:"1.5rem",letterSpacing:"-0.01em",fontWeight:"600"}],"body-sm":["0.75rem",{lineHeight:"1rem",fontWeight:"400"}],"telemetry-lg":["1.25rem",{lineHeight:"1.5rem",letterSpacing:"-0.02em",fontWeight:"500"}],"body-md":["0.875rem",{lineHeight:"1.25rem",fontWeight:"400"}],"telemetry-sm":["0.75rem",{lineHeight:"1rem",fontWeight:"400"}],"telemetry-md":["0.875rem",{lineHeight:"1.25rem",fontWeight:"400"}],"label-sm":["0.6875rem",{lineHeight:"0.875rem",letterSpacing:"0.04em",fontWeight:"600"}],"headline-lg":["1.5rem",{lineHeight:"2rem",letterSpacing:"-0.015em",fontWeight:"600"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 w-full z-50 bg-surface-container-lowest border-b border-surface-variant"><div class="h-16 w-full px-margin flex items-center justify-between"><div class="flex items-center gap-space-xl"><div class="flex items-center gap-space-sm"><img alt="SkyGuard AI Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1V6zizm4G8Y45O_vbouRZ8Qg-XOdTLC8sufKLTYz-9gxT23rCQXat_WvqvBdm1pBo0CzSRcL09xZBF2i6Q_UNXnGsDpjUCQp6bhMqrsnbEd3oRlmIeEEBiv0-PDYcFPy_MXCWs_sfGXIHfD1GS2hOCSUGNNoIaxpQjS5_0aHqPksIO1oXphaUS73oKhQycS3kLxEkN-GjEs6lXm-phDUuFyXD4F4OplrkEcf9aHmpn2y7cUs9HLkiRpfqck"/><span class="font-headline-sm text-headline-sm tracking-tight text-on-surface">SkyGuard - AI</span></div><nav class="flex items-center gap-space-lg" data-active-classes="text-primary font-label-lg text-label-lg border-b-2 border-primary pb-space-sm pt-space-sm"><a aria-current="page" class="transition-colors text-primary font-label-lg text-label-lg border-b-2 border-primary pb-space-sm pt-space-sm" data-path="fleet" href="#">Fleet</a><a class="text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition-colors pb-space-sm pt-space-sm" data-path="station" href="#">Station</a><a class="text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition-colors pb-space-sm pt-space-sm" data-path="explainability" href="#">Explainability</a><a class="text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition-colors pb-space-sm pt-space-sm" data-path="alerts" href="#">Alerts</a><a class="text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition-colors pb-space-sm pt-space-sm" data-path="manage-aws" href="#">Manage AWS</a></nav></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs px-space-sm py-1 bg-surface border border-surface-variant rounded-full shadow-[0_4px_16px_-2px_rgba(27,26,24,0.08)]"><span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span><span class="font-telemetry-sm text-telemetry-sm text-on-surface-variant">Demo · 09:47</span></div><button class="flex items-center justify-center w-8 h-8 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span></button><span class="px-space-sm py-1 rounded font-label-sm text-label-sm uppercase bg-surface-container text-on-surface-variant">OPERATOR</span><span class="px-space-sm py-1 rounded font-label-sm text-label-sm uppercase bg-secondary-container text-on-secondary-container">ADMIN</span><div class="relative flex items-center"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEXkAGh4QTNoDB1FViaNRBV_q9m8uTvr3laGRw1JwlVaz4tLA0AdKifCgCCYVUhKLWueGSs8sKiREYhgRE6MYQEtLxMvJfp0aqruSGNTaACX5TCeexO1HfabLhzTxHzjrt0p4aE67NDkqJsXcO0nYXT6w9xVXRHqc6kozIFDzD7HYU5rWfpqx4TZeOe7HM9EflTIbywKf4_nQwmFkav0dr0MppKNms7lH4SSKVVBGE4fy-ppeVRWQQcw"/><span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-tertiary ring-2 ring-surface-container-lowest"></span></div></div></div><div class="w-full h-8 px-margin bg-primary-fixed flex items-center justify-between border-b border-outline-variant"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[16px] text-primary">info</span><span class="font-body-sm text-body-sm text-on-primary-fixed">You're in Live Sandbox Mode — data resets each session</span></div><div class="flex items-center gap-space-lg"><a class="font-label-sm text-label-sm text-primary hover:text-on-primary-fixed-variant transition-colors" data-path="login" href="#">Exit Demo</a><a class="font-label-sm text-label-sm text-on-primary-fixed font-semibold hover:text-primary transition-colors" data-path="signup" href="#">Create Free Account</a></div></div></header><main class="w-full pt-24 px-margin bg-surface"><div class="flex flex-col w-full">
+<div class="w-full py-space-xl flex flex-col gap-space-xl">
+<!-- Console Control Header & Spatial Sync Bar -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">hub</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface">Global Fleet Telemetry &amp; Spatial Consensus</span>
+<span class="bg-primary-fixed text-on-primary-fixed font-telemetry-sm text-telemetry-sm px-space-xs py-0.5 rounded uppercase tracking-wider">L2 Grid Mesh</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Real-time synchronized surface array across 14 synoptic operational quadrants</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md flex-wrap">
+<div class="flex items-center gap-space-xs px-space-md py-1.5 rounded-lg bg-surface-container-low font-telemetry-sm text-telemetry-sm text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span>Consensus Sync: 1,000ms</span>
+<span class="text-outline-variant font-telemetry-sm">•</span>
+<span>Variance Floor: σ 0.04</span>
+</div>
+<button class="flex items-center gap-space-xs px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg transition-colors">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+<span>Threshold Filters</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg transition-transform active:scale-95">
+<span class="material-symbols-outlined text-[18px]">refresh</span>
+<span>Force Fleet Recalibration</span>
+</button>
+</div>
+</div>
+<!-- Top KPI Cards Row: 4-Column Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter w-full">
+<!-- Card 1: Stations Online -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Stations Online</span>
+<span class="font-telemetry-lg text-telemetry-lg text-on-surface font-semibold mt-1">1,428 / 1,432</span>
+</div>
+<div class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-surface-container-low">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="font-telemetry-sm text-telemetry-sm text-tertiary font-medium">99.7%</span>
+</div>
+</div>
+<div class="mt-4 flex items-center justify-between pt-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">99.72% operational yield</span>
+<span class="font-telemetry-sm text-telemetry-sm text-tertiary flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>+2 past 24h
+          </span>
+</div>
+<div class="w-full h-1 bg-surface-container-low rounded-full mt-2 overflow-hidden">
+<div class="bg-tertiary h-full rounded-full" style="width: 99.72%;"></div>
+</div>
+</div>
+<!-- Card 2: Calibration Drift -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Calibration Drift</span>
+<span class="font-telemetry-lg text-telemetry-lg text-on-surface font-semibold mt-1">14 stations</span>
+</div>
+<div class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-surface-container-low">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="font-telemetry-sm text-telemetry-sm text-primary font-medium">Warning</span>
+</div>
+</div>
+<div class="mt-4 flex items-center justify-between pt-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Δ &gt; 1.8σ threshold</span>
+<span class="font-telemetry-sm text-telemetry-sm text-primary flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>+3 new drift
+          </span>
+</div>
+<div class="w-full h-1 bg-surface-container-low rounded-full mt-2 overflow-hidden">
+<div class="bg-primary-container h-full rounded-full" style="width: 14%;"></div>
+</div>
+</div>
+<!-- Card 3: Extreme Weather Events -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Extreme Weather Events</span>
+<span class="font-telemetry-lg text-telemetry-lg text-on-surface font-semibold mt-1">3 active</span>
+</div>
+<div class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-surface-container-low">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-telemetry-sm text-telemetry-sm text-primary font-medium">Active Watch</span>
+</div>
+</div>
+<div class="mt-4 flex items-center justify-between pt-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Gale warning NW corridor</span>
+<span class="font-telemetry-sm text-telemetry-sm text-on-surface-variant">Peak 78kt</span>
+</div>
+<div class="w-full h-1 bg-surface-container-low rounded-full mt-2 overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 45%;"></div>
+</div>
+</div>
+<!-- Card 4: Confirmed Sensor Faults -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Confirmed Sensor Faults</span>
+<span class="font-telemetry-lg text-telemetry-lg text-on-surface font-semibold mt-1">4 offline</span>
+</div>
+<div class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-error-container">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span class="font-telemetry-sm text-telemetry-sm text-on-error-container font-medium">Critical</span>
+</div>
+</div>
+<div class="mt-4 flex items-center justify-between pt-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Awaiting physical review</span>
+<span class="font-telemetry-sm text-telemetry-sm text-error">MTTR: 4.2h</span>
+</div>
+<div class="w-full h-1 bg-surface-container-low rounded-full mt-2 overflow-hidden">
+<div class="bg-error h-full rounded-full" style="width: 28%;"></div>
+</div>
+</div>
+</div>
+<!-- Middle Row: Spatial Telemetry Map & ML Consensus Engine -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter w-full">
+<!-- Left Column (col-span-7): Spatial Telemetry Map -->
+<div class="lg:col-span-7 bg-surface-container-lowest rounded-xl p-5 shadow-sm flex flex-col justify-between min-h-[520px]">
+<div>
+<!-- Header and Layer Filters -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pb-space-md">
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface">Spatial Telemetry Map</span>
+<span class="px-space-xs py-0.5 bg-surface-container-high rounded text-on-surface-variant font-telemetry-sm text-telemetry-sm">Live 1Hz sync</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Surface meteorological mesh stations &amp; vector fields</span>
+</div>
+<!-- Layer Controls -->
+<div class="flex items-center gap-1 bg-surface-container-low p-1 rounded-lg">
+<button class="px-space-sm py-1 rounded bg-surface-container-lowest text-primary font-label-sm text-label-sm shadow-sm transition-all">Barometric</button>
+<button class="px-space-sm py-1 rounded hover:bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm transition-all">Wind Vector</button>
+<button class="px-space-sm py-1 rounded hover:bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm transition-all">Moisture</button>
+<button class="px-space-sm py-1 rounded hover:bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm transition-all">Satellite IR</button>
+</div>
+</div>
+<!-- Realistic Weather Map Visual Canvas Container -->
+<div class="relative w-full h-[360px] rounded-lg overflow-hidden bg-surface-container-low flex items-center justify-center">
+<!-- Simulated Map Canvas using Static Pipeline Placeholder -->
+<div class="w-full h-full bg-cover bg-center" data-location="North America Pacific Northwest Rocky Mountains" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAUH73Pc-Zjh9G36jobLtRg_ytl7m52RPrb6kSmMc8RH7IRokAFTaGjWg1yv6En3wQd54a7u3muFDUCyZ3M3yyNV2s9F_Gpsu639FLmbbnYYy_FZWk61qvNlHvwp2QwrK8qnslKlThF-MQUKoTSkUIT7eIg_7NH7TaffZQiewnb4TYFd2JlMSGSt53B6me-4RTWkEDasTME8pXBfWszvkWpD6jqzvcuBlIr1Lp9jStX5Cm4WWR4lFlpLA')">
+<!-- Map Synthetic Overlay Grid and Vectors -->
+<div class="absolute inset-0 bg-surface-dim/40 backdrop-blur-[1px] p-4 flex flex-col justify-between">
+<!-- Map Header Overlay Controls -->
+<div class="flex items-center justify-between w-full pointer-events-auto">
+<div class="flex items-center gap-space-xs bg-surface-container-lowest/90 px-space-sm py-1 rounded-lg backdrop-blur-md shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-primary">navigation</span>
+<span class="font-telemetry-sm text-telemetry-sm text-on-surface">Pacific NW Sector • 44.50° N, 122.30° W</span>
+</div>
+<div class="flex items-center gap-1 bg-surface-container-lowest/90 p-1 rounded-lg shadow-sm">
+<button class="w-7 h-7 flex items-center justify-center text-on-surface hover:bg-surface-container rounded" title="Zoom In">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+<button class="w-7 h-7 flex items-center justify-center text-on-surface hover:bg-surface-container rounded" title="Zoom Out">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+<button class="w-7 h-7 flex items-center justify-center text-on-surface hover:bg-surface-container rounded" title="Reset Frame">
+<span class="material-symbols-outlined text-[18px]">center_focus_strong</span>
+</button>
+</div>
+</div>
+<!-- Realistic Spatial Pins across Region -->
+<div class="relative w-full h-full my-2">
+<!-- Nominal Pin 1: Seattle Coastal Array -->
+<div class="absolute top-[28%] left-[22%] group cursor-pointer">
+<div class="relative flex items-center justify-center">
+<span class="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-tertiary opacity-40"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-tertiary"></span>
+</div>
+<div class="hidden group-hover:flex absolute left-4 top-0 bg-surface-container-lowest px-2 py-1 rounded shadow-md z-30 flex-col whitespace-nowrap">
+<span class="font-telemetry-sm text-telemetry-sm font-semibold text-on-surface">STN-9021-OR</span>
+<span class="font-body-sm text-body-sm text-tertiary">1014.2 hPa • Nominal</span>
+</div>
+</div>
+<!-- Drift Pin 2: Cascadia Ridge (Quarantined Barometric) -->
+<div class="absolute top-[42%] left-[38%] group cursor-pointer z-20">
+<div class="relative flex items-center justify-center">
+<span class="animate-pulse absolute inline-flex h-5 w-5 rounded-full bg-primary opacity-60"></span>
+<span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-primary"></span>
+</div>
+<div class="flex absolute left-4 top-0 bg-surface-container-lowest px-2.5 py-1.5 rounded-lg shadow-md z-30 flex-col whitespace-nowrap">
+<div class="flex items-center gap-1">
+<span class="font-telemetry-sm text-telemetry-sm font-semibold text-primary">STN-NW-042</span>
+<span class="px-1 py-0.2 bg-primary-fixed text-on-primary-fixed rounded text-[9px] font-bold uppercase">Drift</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Δ +4.2 hPa (Bias Alert)</span>
+</div>
+</div>
+<!-- Critical Fault Pin 3: Alpine Stn -->
+<div class="absolute top-[18%] left-[55%] group cursor-pointer z-10">
+<div class="relative flex items-center justify-center">
+<span class="inline-flex rounded-full h-3 w-3 bg-error"></span>
+</div>
+<div class="hidden group-hover:flex absolute left-4 top-0 bg-surface-container-lowest px-2 py-1 rounded shadow-md z-30 flex-col whitespace-nowrap">
+<span class="font-telemetry-sm text-telemetry-sm font-semibold text-error">STN-7731-CO</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Sensor Deadlock • Offline</span>
+</div>
+</div>
+<!-- Nominal Pin 4: Central Valley Station -->
+<div class="absolute top-[68%] left-[45%] group cursor-pointer">
+<span class="inline-flex rounded-full h-3 w-3 bg-tertiary"></span>
+</div>
+<!-- Nominal Pin 5: Columbia Basin Station -->
+<div class="absolute top-[35%] left-[72%] group cursor-pointer">
+<span class="inline-flex rounded-full h-3 w-3 bg-tertiary"></span>
+</div>
+<!-- Nominal Pin 6: High Desert Array -->
+<div class="absolute top-[75%] left-[68%] group cursor-pointer">
+<span class="inline-flex rounded-full h-3 w-3 bg-tertiary"></span>
+</div>
+<!-- Vector Contour Overlay Lines (SVG) -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-40 text-outline" fill="none" stroke="currentColor">
+<path d="M 50,80 Q 180,120 320,60 T 580,90" stroke-dasharray="4 4" stroke-width="1"></path>
+<path d="M 40,160 Q 220,190 380,140 T 620,180" stroke-width="1.5"></path>
+<path d="M 60,240 Q 260,260 420,220 T 660,250" stroke-dasharray="2 2" stroke-width="1"></path>
+<text class="font-telemetry-sm text-[10px]" fill="currentColor" x="330" y="55">1016 hPa</text>
+<text class="font-telemetry-sm text-[10px]" fill="currentColor" x="390" y="135">1012 hPa</text>
+<text class="font-telemetry-sm text-[10px]" fill="currentColor" x="430" y="215">1008 hPa</text>
+</svg>
+</div>
+<!-- In-Map Status Legend -->
+<div class="flex items-center gap-space-md bg-surface-container-lowest/90 px-space-md py-1.5 rounded-lg shadow-sm backdrop-blur-md self-start">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+<span class="font-label-sm text-label-sm text-on-surface">Nominal (1,414)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+<span class="font-label-sm text-label-sm text-on-surface">Drift Divergence (14)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-error"></span>
+<span class="font-label-sm text-label-sm text-on-surface">Hardware Fault (4)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Map Footer Telemetry Bar -->
+<div class="flex items-center justify-between pt-space-md font-telemetry-sm text-telemetry-sm text-on-surface-variant">
+<span>Active Ingestion: 8,420 sensors @ 120Hz continuous</span>
+<span class="text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Spatial Graph Inverted • 0 packet drops
+          </span>
+</div>
+</div>
+<!-- Right Column (col-span-5): Spatial Consensus & Inference Panel (xAI) -->
+<div class="lg:col-span-5 bg-surface-container-lowest rounded-xl p-5 shadow-sm flex flex-col justify-between relative overflow-hidden">
+<!-- Header with Violet Accents for ML/xAI -->
+<div>
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Spatial Consensus Engine</span>
+</div>
+<span class="px-space-sm py-0.5 bg-secondary-fixed text-on-secondary-fixed font-telemetry-sm text-telemetry-sm rounded uppercase tracking-wider font-semibold">v2.4 Active</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Spatiotemporal transformer cross-validation against physical atmospheric priors</span>
+<!-- Cluster Consensus Metric Tiles -->
+<div class="grid grid-cols-2 gap-space-sm my-space-md">
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Neighborhood Agreement</span>
+<div class="flex items-baseline gap-1 mt-1">
+<span class="font-telemetry-lg text-telemetry-lg font-semibold text-secondary">98.4%</span>
+<span class="font-body-sm text-body-sm text-tertiary font-medium">Δ ±0.3%</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">K-nearest mesh correlation</span>
+</div>
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Z-Score Divergence</span>
+<div class="flex items-baseline gap-1 mt-1">
+<span class="font-telemetry-lg text-telemetry-lg font-semibold text-on-surface">0.12 σ</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ 3.0σ max</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">Global grid stability index</span>
+</div>
+</div>
+<!-- Quarantined & Flagged Sensors Section -->
+<div class="mt-space-md">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Flagged / Quarantined Sensors (3)</span>
+<span class="font-telemetry-sm text-telemetry-sm text-secondary">Auto-Isolate Rule ON</span>
+</div>
+<!-- List of Anomaly Items -->
+<div class="flex flex-col gap-space-xs">
+<!-- Station 1 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors flex items-center justify-between">
+<div class="flex flex-col min-w-0 pr-2">
+<div class="flex items-center gap-space-xs">
+<span class="font-telemetry-md text-telemetry-md font-medium text-on-surface">#US-NW-042</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-telemetry-sm uppercase bg-error-container text-on-error-container font-semibold">Quarantined</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Barometric bias +4.2hPa • Div: High</span>
+</div>
+<button class="px-space-sm py-1 rounded bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors whitespace-nowrap shadow-sm">
+                  Audit Bias
+                </button>
+</div>
+<!-- Station 2 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors flex items-center justify-between">
+<div class="flex flex-col min-w-0 pr-2">
+<div class="flex items-center gap-space-xs">
+<span class="font-telemetry-md text-telemetry-md font-medium text-on-surface">#EU-CE-118</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-telemetry-sm uppercase bg-primary-fixed text-on-primary-fixed font-semibold">Flagged</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Anemometer stalling • Frozen output</span>
+</div>
+<button class="px-space-sm py-1 rounded bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors whitespace-nowrap shadow-sm">
+                  Inspect
+                </button>
+</div>
+<!-- Station 3 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors flex items-center justify-between">
+<div class="flex flex-col min-w-0 pr-2">
+<div class="flex items-center gap-space-xs">
+<span class="font-telemetry-md text-telemetry-md font-medium text-on-surface">#AP-SE-094</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-telemetry-sm uppercase bg-secondary-fixed text-on-secondary-fixed font-semibold">Investigating</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Relative Humidity jump +38% (Dewpoint dev)</span>
+</div>
+<button class="px-space-sm py-1 rounded bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors whitespace-nowrap shadow-sm">
+                  Telemetry
+                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Consensus Action Buttons -->
+<div class="flex items-center gap-space-sm pt-space-lg">
+<button class="flex-1 py-2 px-space-md rounded-lg bg-secondary text-on-secondary font-label-lg text-label-lg flex items-center justify-center gap-space-xs hover:bg-secondary-container transition-colors shadow-sm active:scale-95">
+<span class="material-symbols-outlined text-[18px]">psychology</span>
+<span>Run Re-Consensus</span>
+</button>
+<button class="flex-1 py-2 px-space-md rounded-lg bg-surface-container-lowest text-on-surface font-label-lg text-label-lg flex items-center justify-center gap-space-xs hover:bg-surface-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">query_stats</span>
+<span>Inspect Residuals</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bottom Row: Full-Width Live Data Table 'Live Anomaly & Active Learning Stream' -->
+<div class="w-full bg-surface-container-lowest rounded-xl p-5 shadow-sm flex flex-col gap-space-md">
+<!-- Table Header & Controls -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface">Live Anomaly &amp; Active Learning Stream</span>
+<div class="flex items-center gap-1 px-space-xs py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-telemetry-sm text-telemetry-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+              STREAMING
+            </div>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Real-time edge telemetry paired with spatial neural expectation vectors</span>
+</div>
+<!-- Search & Filter Bar -->
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1.5 rounded-lg">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">search</span>
+<input class="bg-transparent text-on-surface font-body-sm text-body-sm focus:outline-none w-48" placeholder="Filter station or parameter..." type="text"/>
+</div>
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+<span>Export CSV</span>
+</button>
+</div>
+</div>
+<!-- Data Table Responsive Container -->
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
+<th class="py-3 px-4">Station ID</th>
+<th class="py-3 px-4">Parameter</th>
+<th class="py-3 px-4 text-right">Live Telemetry</th>
+<th class="py-3 px-4 text-right">Expected Model</th>
+<th class="py-3 px-4">Status</th>
+<th class="py-3 px-4 text-right">ML Confidence</th>
+<th class="py-3 px-4 text-right">Last Ping</th>
+<th class="py-3 px-4 text-center">Actions</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<!-- Row 1: STN-9021-OR (Nominal) -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-3.5 px-4 font-telemetry-md text-telemetry-md font-medium text-on-surface">STN-9021-OR</td>
+<td class="py-3.5 px-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">compress</span>
+<span>Barometric Pressure</span>
+</td>
+<td class="py-3.5 px-4 text-right font-telemetry-md text-telemetry-md font-semibold text-on-surface">1,014.24 hPa</td>
+<td class="py-3.5 px-4 text-right font-telemetry-md text-telemetry-md text-on-surface-variant">1,014.18 hPa</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-surface-container-low text-tertiary font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> Nominal
+                </span>
+</td>
+<td class="py-3.5 px-4 text-right font-telemetry-md text-telemetry-md text-tertiary font-medium">99.8%</td>
+<td class="py-3.5 px-4 text-right font-telemetry-sm text-telemetry-sm text-on-surface-variant">09:47:12.18</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center justify-center gap-1">
+<button class="w-7 h-7 rounded hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Inspect">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-7 h-7 rounded hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Quarantine Toggle">
+<span class="material-symbols-outlined text-[18px]">shield</span>
+</button>
+<button class="w-7 h-7 rounded hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Flag Remaining Useful Life">
+<span class="material-symbols-outlined text-[18px]">bookmark_add</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: STN-4412-TX (Drift) -->
+<tr class="bg-surface-container-lowest/50 hover:bg-surface-container-low transition-colors">
+<td class="py-3.5 px-4 font-telemetry-md text-telemetry-md font-medium text-on-surface">STN-4412-TX</td>
+<td class="py-3.5 px-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">thermostat</span>
+<span>Ambient Air Temp</span>
+</td>
+<td class="py-3.5 px-4 text-right font-telemetry-md text-telemetry-md font-semibold text-primary">38.4 °C</td>
+<td class="py-3.5 px-4 text-right font-telemetry-md text-telemetry-md text-on-surface-variant">36.1 °C</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Drift (+2.3°)
+                </span>
+</td>
+<td class="py-3.5 px-4 text-right font-telemetry-md text-telemetry-md text-primary font-medium">84.1%</td>
+<td class="py-3.5 px-4 text-right font-telemetry-sm text-telemetry-sm text-on-surface-variant">09:47:11.90</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center justify-center gap-1">
+<button class="w-7 h-7 rounded hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Inspect">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-7 h-7 rounded hover:bg-surface-container flex items-center justify-center text-primary hover:text-primary-container transition-colors" title="Quarantine Toggle">
+<span class="material-symbols-outlined text-[18px]">shield</span>
+</button>
+<button class="w-7 h-7 rounded hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Flag Remaining Useful Life">
+<span class="material-symbols-outlined text-[18px]">bookmark_add</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: STN-8820-ME (Nominal) -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-3.5 px-4 font-telemetry-md text-telemetry-md font-medium text-on-surface">STN-8820-ME</td>
+<td class="py-3.5 px-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">air</span>
+<span>Wind Velocity (Gust)</span>
+</td>
+<td class="py-3.5 px-4 text-right font-telemetry-md text-telemetry-md font-semibold text-on-surface">22.4 kt / 290°</td>
+<td class="py-3.5 px-4 text-right font-telemetry-md text-telemetry-md text-on-surface-variant">21.8 kt / 285°</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-surface-container-low text-tertiary font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> Nominal
+                </span>
+</td>
+<td class="py-3.5 px-4 text-right font-telemetry-md text-telemetry-md text-tertiary font-medium">96.7%</td>
+<td class="py-3.5 px-4 text-right font-telemetry-sm text-telemetry-sm text-on-surface-variant">09:47:11.45</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center justify-center gap-1">
+<button class="w-7 h-7 rounded hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Inspect">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-7 h-7 rounded hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Quarantine Toggle">
+<span class="material-symbols-outlined text-[18px]">shield</span>
+</button>
+<button class="w-7 h-7 rounded hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Flag Remaining Useful Life">
+<span class="material-symbols-outlined text-[18px]">bookmark_add</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4: STN-3109-FL (Active Drift Alert) -->
+<tr class="bg-surface-container-lowest/50 hover:bg-surface-container-low transition-colors">
+<td class="py-3.5 px-4 font-telemetry-md text-telemetry-md font-medium text-on-surface">STN-3109-FL</td>
+<td class="py-3.5 px-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">water_drop</span>
+<span>Relative Humidity</span>
+</td>
+<td class="py-3.5 px-4 text-right font-telemetry-md text-telemetry-md font-semibold text-primary">94.8 %RH</td>
+<td class="py-3.5 px-4 text-right font-telemetry-md text-telemetry-md text-on-surface-variant">81.0 %RH</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Drift (+1.9σ)
+                </span>
+</td>
+<td class="py-3.5 px-4 text-right font-telemetry-md text-telemetry-md text-primary font-medium">78.2%</td>
+<td class="py-3.5 px-4 text-right font-telemetry-sm text-telemetry-sm text-on-surface-variant">09:47:10.82</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center justify-center gap-1">
+<button class="w-7 h-7 rounded hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Inspect">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-7 h-7 rounded hover:bg-surface-container flex items-center justify-center text-primary hover:text-primary-container transition-colors" title="Quarantine Toggle">
+<span class="material-symbols-outlined text-[18px]">shield</span>
+</button>
+<button class="w-7 h-7 rounded hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Flag Remaining Useful Life">
+<span class="material-symbols-outlined text-[18px]">bookmark_add</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5: STN-7731-CO (Critical Sensor Fault) -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-3.5 px-4 font-telemetry-md text-telemetry-md font-medium text-error">STN-7731-CO</td>
+<td class="py-3.5 px-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-error">solar_power</span>
+<span>Pyranometer Irradiance</span>
+</td>
+<td class="py-3.5 px-4 text-right font-telemetry-md text-telemetry-md font-semibold text-error">0.00 W/m² (NULL)</td>
+<td class="py-3.5 px-4 text-right font-telemetry-md text-telemetry-md text-on-surface-variant">640.20 W/m²</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> Critical Fault
+                </span>
+</td>
+<td class="py-3.5 px-4 text-right font-telemetry-md text-telemetry-md text-error font-medium">12.0%</td>
+<td class="py-3.5 px-4 text-right font-telemetry-sm text-telemetry-sm text-on-surface-variant">09:44:02.10</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center justify-center gap-1">
+<button class="w-7 h-7 rounded hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Inspect">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-7 h-7 rounded hover:bg-surface-container flex items-center justify-center text-error hover:text-on-error-container transition-colors" title="Quarantine Toggle">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+</button>
+<button class="w-7 h-7 rounded hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Flag Remaining Useful Life">
+<span class="material-symbols-outlined text-[18px]">build</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination and Stream Controls Footer -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pt-space-xs font-telemetry-sm text-telemetry-sm text-on-surface-variant">
+<div class="flex items-center gap-space-xs">
+<span>Showing 5 of 1,432 operational records</span>
+<span>•</span>
+<span class="text-tertiary">Active WebSocket session: ws://telemetry.- AI.internal:8080/v4/stream</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-space-sm py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface disabled:opacity-50" disabled="">Previous</button>
+<span class="px-space-sm py-1 font-medium text-on-surface">Page 1 of 287</span>
+<button class="px-space-sm py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface">Next</button>
+</div>
+</div>
+</div>
+</div>
+</div></main><footer class="w-full bg-surface-container-lowest border-t border-surface-variant py-space-md mt-space-xl"><div class="w-full px-margin flex items-center justify-between text-on-surface-variant"><span class="font-telemetry-sm text-telemetry-sm">- AI Operational Workspace v4.12.0-prod · Consensus Latency: 14ms</span><span class="font-body-sm text-body-sm">© 2024 SkyGuard AI Inc. Authorized Grid &amp; Meteorological Personnel Only.</span></div></footer></body></html>

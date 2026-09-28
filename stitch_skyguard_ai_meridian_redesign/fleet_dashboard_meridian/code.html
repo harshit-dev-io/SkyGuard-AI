@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SkyGuard - AI — Fleet Dashboard</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandDark: '#1B1A18',
+            inkMuted: '#716C64',
+            panelBg: '#FAF9F7',
+            cardBorder: '#E9E5DF',
+            brandAccent: '#E1590C',
+            accentSoft: '#FDEDE1',
+            accentSoftBorder: '#FCD9C3',
+            accentText: '#C24A08',
+            xaiViolet: '#6D28D9',
+            xaiVioletLight: '#F3E8FF',
+            signalGreen: '#1F9D55',
+            signalGreenLight: '#E8F7EE',
+            signalAmber: '#D97706',
+            signalAmberLight: '#FEF3C7',
+            signalRed: '#DC2626',
+            signalRedLight: '#FEE2E2',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #FFFFFF;
+        color: #1B1A18;
+      }
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-white font-sans text-brandDark antialiased min-h-screen flex flex-col">
+<!-- 1. BRAND & HEADER -->
+<header class="w-full h-16 bg-white border-b border-cardBorder px-6 flex items-center justify-between z-40 sticky top-0">
+<div class="flex items-center gap-8">
+<!-- Brand Logo -->
+<a class="flex items-center gap-2.5" href="#">
+<div class="w-8 h-8 rounded-lg bg-brandDark flex items-center justify-center relative overflow-hidden">
+<svg class="w-full h-full p-1.5" fill="none" viewbox="0 0 32 32">
+<path d="M6 21C9 16.5 13.5 15 17 16.5C20.5 18 22.5 15.5 25.5 11" stroke="#E1590C" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+<circle cx="25.5" cy="11" fill="#E1590C" r="2.5"></circle>
+<path d="M8 25C12 23 17 24 22 21" opacity="0.6" stroke="#FAF9F7" stroke-linecap="round" stroke-width="1.75"></path>
+<circle cx="9" cy="11" fill="#1F9D55" r="1.5"></circle>
+</svg>
+</div>
+<div class="flex items-baseline gap-1 text-[17px] font-bold tracking-tight">
+<span>SkyGuard</span>
+<span class="text-brandAccent">- AI</span>
+</div>
+</a>
+<!-- Five Nav Tabs -->
+<nav class="flex items-center gap-1">
+<a class="px-3.5 py-5 text-sm font-semibold text-brandAccent border-b-2 border-brandAccent" href="#">Fleet</a>
+<a class="px-3.5 py-5 text-sm font-medium text-inkMuted hover:text-brandDark transition-colors" href="#">Station</a>
+<a class="px-3.5 py-5 text-sm font-medium text-inkMuted hover:text-brandDark transition-colors" href="#">Explainability</a>
+<a class="px-3.5 py-5 text-sm font-medium text-inkMuted hover:text-brandDark transition-colors" href="#">Alerts</a>
+<a class="px-3.5 py-5 text-sm font-medium text-inkMuted hover:text-brandDark transition-colors" href="#">Manage AWS</a>
+</nav>
+</div>
+<!-- Right Utilities -->
+<div class="flex items-center gap-3">
+<!-- Live countdown timer pill -->
+<div class="flex items-center gap-2 px-3 py-1 bg-panelBg border border-cardBorder rounded-full text-xs font-mono text-inkMuted">
+<span class="w-2 h-2 rounded-full bg-brandAccent animate-pulse"></span>
+<span>Demo · <strong class="font-semibold text-brandDark">09:47</strong></span>
+</div>
+<!-- Notification bell -->
+<button class="w-8 h-8 rounded-md flex items-center justify-center text-inkMuted hover:text-brandDark hover:bg-panelBg transition-colors" title="Notifications">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<!-- Role Badges -->
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold tracking-wider uppercase bg-panelBg text-inkMuted border border-cardBorder">OPERATOR</span>
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold tracking-wider uppercase bg-xaiVioletLight text-xaiViolet">ADMIN</span>
+<!-- Profile Avatar with Signal Green Dot -->
+<div class="relative w-8 h-8 ml-1">
+<img alt="Operator Profile" class="w-8 h-8 rounded-full object-cover border border-cardBorder" src="https://lh3.googleusercontent.com/aida/AEtjO1UA2P1IJ9n98eOw4gsAMx5mUv3Ihe9ekivEaBFmq61qq_TWQ3tD98dv6rpFqwI4XwJzSKBKDqDy6CL-xqaJ4VQYHZprblBRFekiR8ifuZMyujroQuSF8sfLpevj8djFpxZLRgX7QSyZHkvseHzSL7X-XtMb9bZ7Mj0S89PPaK5I1JiBgJTKbNUHyTXSwxMSG4w91hXjzeiZhpLBj3EpVImJlgQ8z-O03_fVUjtK7tK2bLXodY7jr7qjWcuh"/>
+<span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-signalGreen rounded-full ring-2 ring-white"></span>
+</div>
+</div>
+</header>
+<!-- 2. SANDBOX BANNER -->
+<div class="w-full bg-accentSoft border-b border-accentSoftBorder py-3 px-6 flex items-center justify-between text-xs text-accentText">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[17px] text-brandAccent">info</span>
+<span class="font-medium">You're in Live Sandbox Mode — data resets each session</span>
+</div>
+<div class="flex items-center gap-5">
+<a class="font-medium hover:underline text-accentText" href="#">Exit Demo</a>
+<a class="font-semibold px-2.5 py-1 rounded bg-white border border-accentSoftBorder text-brandAccent hover:bg-accentSoft transition-colors" href="#">Create Free Account</a>
+</div>
+</div>
+<!-- 3. MAIN DASHBOARD CONTAINER (Full bleed, 100% width, 24px fixed edge padding) -->
+<main class="w-full px-6 py-5 flex flex-col gap-4 flex-1">
+<!-- Page Sub-Header / Control Strip -->
+<div class="w-full bg-panelBg border border-cardBorder rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="flex items-center gap-3.5">
+<div class="w-10 h-10 rounded-lg bg-white border border-cardBorder flex items-center justify-center text-brandDark">
+<span class="material-symbols-outlined text-[22px]">hub</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h1 class="text-base font-bold tracking-tight text-brandDark">Global Fleet Telemetry &amp; Spatial Consensus</h1>
+<span class="px-2 py-0.5 rounded text-[10px] font-mono uppercase font-semibold bg-white border border-cardBorder text-brandDark">L2 GRID MESH</span>
+</div>
+<p class="text-xs text-inkMuted mt-0.5">Real-time synchronized surface array across 14 synoptic operational quadrants</p>
+</div>
+</div>
+<div class="flex items-center gap-3 flex-wrap">
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-cardBorder text-xs font-mono text-inkMuted">
+<span class="w-2 h-2 rounded-full bg-signalGreen"></span>
+<span>Consensus Sync: 1,000ms</span>
+<span class="text-cardBorder">•</span>
+<span>Variance Floor: σ 0.04</span>
+</div>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-cardBorder hover:bg-panelBg text-xs font-medium text-brandDark transition-colors">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span>Threshold Filters</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-brandAccent hover:opacity-95 text-white text-xs font-semibold tracking-wide transition-opacity">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+<span>Force Fleet Recalibration</span>
+</button>
+</div>
+</div>
+<!-- 4. 4 KPI CARDS (Single full-width row, 4-column CSS grid, 12px radius, 1px border #E9E5DF, bg #FFFFFF, no drop shadows) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+<!-- Card 1 -->
+<div class="bg-white border border-cardBorder rounded-xl p-4 flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="text-[11px] font-semibold uppercase tracking-wider text-inkMuted">STATIONS ONLINE</span>
+<span class="px-2 py-0.5 rounded-full text-xs font-mono font-medium bg-signalGreenLight text-signalGreen">99.7%</span>
+</div>
+<div class="my-2.5">
+<div class="text-2xl font-mono font-semibold tracking-tight text-brandDark">1,428 / 1,432</div>
+</div>
+<div class="pt-2 border-t border-cardBorder/60 flex items-center justify-between text-xs text-inkMuted">
+<span>99.72% operational yield</span>
+<span class="text-signalGreen font-mono font-medium flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[13px]">trending_up</span>+2 past 24h
+          </span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white border border-cardBorder rounded-xl p-4 flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="text-[11px] font-semibold uppercase tracking-wider text-inkMuted">CALIBRATION DRIFT</span>
+<span class="px-2 py-0.5 rounded-full text-xs font-mono font-medium bg-signalAmberLight text-signalAmber">Warning</span>
+</div>
+<div class="my-2.5">
+<div class="text-2xl font-mono font-semibold tracking-tight text-brandDark">14 stations</div>
+</div>
+<div class="pt-2 border-t border-cardBorder/60 flex items-center justify-between text-xs text-inkMuted">
+<span>Δ &gt; 1.8σ threshold</span>
+<span class="text-signalAmber font-mono font-medium flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[13px]">arrow_upward</span>+3 new drift
+          </span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-white border border-cardBorder rounded-xl p-4 flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="text-[11px] font-semibold uppercase tracking-wider text-inkMuted">EXTREME WEATHER EVENTS</span>
+<span class="px-2 py-0.5 rounded-full text-xs font-mono font-medium bg-signalAmberLight text-signalAmber flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-signalAmber animate-ping"></span>Active Watch
+          </span>
+</div>
+<div class="my-2.5">
+<div class="text-2xl font-mono font-semibold tracking-tight text-brandDark">3 active</div>
+</div>
+<div class="pt-2 border-t border-cardBorder/60 flex items-center justify-between text-xs text-inkMuted">
+<span>Gale warning NW corridor</span>
+<span class="font-mono text-brandDark">Peak 78kt</span>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-white border border-cardBorder rounded-xl p-4 flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="text-[11px] font-semibold uppercase tracking-wider text-inkMuted">CONFIRMED SENSOR FAULTS</span>
+<span class="px-2 py-0.5 rounded-full text-xs font-mono font-medium bg-signalRedLight text-signalRed flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-signalRed"></span>Critical
+          </span>
+</div>
+<div class="my-2.5">
+<div class="text-2xl font-mono font-semibold tracking-tight text-brandDark">4 offline</div>
+</div>
+<div class="pt-2 border-t border-cardBorder/60 flex items-center justify-between text-xs text-inkMuted">
+<span>Awaiting physical review</span>
+<span class="font-mono text-signalRed font-medium">MTTR: 4.2h</span>
+</div>
+</div>
+</div>
+<!-- 5. MIDDLE 2-COLUMN ROW (60% / 40%) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full">
+<!-- Left (60%): Spatial Telemetry Map -->
+<div class="lg:col-span-7 bg-white border border-cardBorder rounded-xl p-4 flex flex-col justify-between">
+<div>
+<!-- Header and Layer Filters -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-cardBorder">
+<div>
+<div class="flex items-center gap-2">
+<h2 class="text-sm font-bold text-brandDark">Spatial Telemetry Map</h2>
+<span class="px-2 py-0.5 bg-panelBg border border-cardBorder rounded text-[11px] font-mono text-inkMuted">Live 1Hz sync</span>
+</div>
+<p class="text-xs text-inkMuted mt-0.5">Surface meteorological mesh stations &amp; vector fields</p>
+</div>
+<!-- Layer Controls -->
+<div class="flex items-center gap-1 bg-panelBg border border-cardBorder p-1 rounded-lg">
+<button class="px-2.5 py-1 rounded text-xs font-semibold bg-white text-brandAccent border border-cardBorder">Barometric</button>
+<button class="px-2.5 py-1 rounded text-xs font-medium text-inkMuted hover:text-brandDark transition-colors">Wind Vector</button>
+<button class="px-2.5 py-1 rounded text-xs font-medium text-inkMuted hover:text-brandDark transition-colors">Moisture</button>
+<button class="px-2.5 py-1 rounded text-xs font-medium text-inkMuted hover:text-brandDark transition-colors">Satellite IR</button>
+</div>
+</div>
+<!-- Interactive Vector Map Canvas -->
+<div class="relative w-full h-[340px] rounded-lg mt-3 overflow-hidden bg-[#F4F1EA] border border-cardBorder flex items-center justify-center">
+<!-- Simulated Map Canvas Graphic (Pacific NW Coast & Inland) -->
+<svg class="w-full h-full" fill="none" viewbox="0 0 640 340" xmlns="http://www.w3.org/2000/svg">
+<!-- Water Bodies / Coastline Base -->
+<rect fill="#EAE7DF" height="340" width="640"></rect>
+<path d="M0,0 L180,0 C175,60 160,110 145,150 C130,200 150,260 120,340 L0,340 Z" fill="#DDE5E7" opacity="0.8"></path>
+<!-- Subtle Topographic & Isobar contour curves -->
+<path d="M120,340 C145,260 135,210 150,150 C165,110 178,60 185,0" stroke="#CBD5DB" stroke-width="2"></path>
+<path d="M 160 50 Q 280 90 440 40 T 640 70" stroke="#C4BDB1" stroke-dasharray="3 3" stroke-width="1.25"></path>
+<path d="M 150 130 Q 300 160 480 110 T 640 140" stroke="#B8AFA0" stroke-width="1.5"></path>
+<path d="M 130 220 Q 320 240 500 190 T 640 230" stroke="#C4BDB1" stroke-dasharray="4 4" stroke-width="1.25"></path>
+<path d="M 115 300 Q 310 310 490 270 T 640 290" stroke="#B8AFA0" stroke-width="1.25"></path>
+<!-- Isobar Labels -->
+<text fill="#716C64" font-family="'JetBrains Mono', monospace" font-size="10" x="350" y="44">1016 hPa</text>
+<text fill="#716C64" font-family="'JetBrains Mono', monospace" font-size="10" x="370" y="124">1012 hPa</text>
+<text fill="#716C64" font-family="'JetBrains Mono', monospace" font-size="10" x="390" y="204">1008 hPa</text>
+<!-- Telemetry Stations Nodes -->
+<!-- Station 1 (Nominal, Coastal) -->
+<circle cx="165" cy="145" fill="#1F9D55" r="5"></circle>
+<circle cx="165" cy="145" r="10" stroke="#1F9D55" stroke-opacity="0.3" stroke-width="2"></circle>
+<!-- Station 2 (Nominal, Valley) -->
+<circle cx="280" cy="235" fill="#1F9D55" r="5"></circle>
+<!-- Station 3 (Nominal, East) -->
+<circle cx="450" cy="150" fill="#1F9D55" r="5"></circle>
+<!-- Station 4 (Nominal, South) -->
+<circle cx="430" cy="270" fill="#1F9D55" r="5"></circle>
+<!-- Station 5 (Hardware Fault, North-East) -->
+<circle cx="360" cy="80" fill="#DC2626" r="5"></circle>
+<!-- Station 6 (Drift Anomaly - Callout Target) -->
+<circle cx="260" cy="160" fill="#D97706" r="6"></circle>
+<circle class="animate-pulse" cx="260" cy="160" r="12" stroke="#D97706" stroke-opacity="0.4" stroke-width="2"></circle>
+</svg>
+<!-- Coordinate Sector Tag & Map Controls Overlaid -->
+<div class="absolute top-3 left-3 bg-white/95 border border-cardBorder px-2.5 py-1 rounded-md text-[11px] font-mono text-brandDark flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[14px] text-brandAccent">near_me</span>
+<span>Pacific NW Sector • 44.50° N, 122.30° W</span>
+</div>
+<div class="absolute top-3 right-3 bg-white/95 border border-cardBorder p-1 rounded-md flex items-center gap-1 shadow-sm">
+<button class="w-6 h-6 flex items-center justify-center text-brandDark hover:bg-panelBg rounded" title="Zoom In">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+<button class="w-6 h-6 flex items-center justify-center text-brandDark hover:bg-panelBg rounded" title="Zoom Out">
+<span class="material-symbols-outlined text-[16px]">remove</span>
+</button>
+<button class="w-6 h-6 flex items-center justify-center text-brandDark hover:bg-panelBg rounded" title="Full Screen">
+<span class="material-symbols-outlined text-[16px]">fullscreen</span>
+</button>
+</div>
+<!-- Drifting Station Callout Popup -->
+<div class="absolute top-[42%] left-[42%] bg-white border border-cardBorder rounded-lg p-2 shadow-sm text-xs pointer-events-none">
+<div class="flex items-center gap-1.5">
+<span class="font-mono font-semibold text-brandDark">STN-NW-042</span>
+<span class="px-1 py-0.5 rounded text-[9px] font-mono font-bold uppercase bg-signalAmberLight text-signalAmber">DRIFT</span>
+</div>
+<div class="text-[11px] text-accentText font-medium mt-0.5">Δ +4.2 hPa (Bias Alert)</div>
+</div>
+<!-- In-Map Status Legend -->
+<div class="absolute bottom-3 left-3 bg-white/95 border border-cardBorder px-3 py-1.5 rounded-lg flex items-center gap-3 text-xs shadow-sm">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-signalGreen"></span>
+<span class="font-medium text-brandDark">Nominal (1,414)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-signalAmber"></span>
+<span class="font-medium text-brandDark">Drift Divergence (14)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-signalRed"></span>
+<span class="font-medium text-brandDark">Hardware Fault (4)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Ingestion Telemetry Footer Strip -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 mt-2 border-t border-cardBorder text-xs text-inkMuted font-mono">
+<span>Active Ingestion: 8,420 sensors @ 120Hz continuous</span>
+<span class="text-signalGreen font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+            Spatial Graph Inverted • 0 packet drops
+          </span>
+</div>
+</div>
+<!-- Right (40%): Spatial Consensus Engine (xAI Theme) -->
+<div class="lg:col-span-5 bg-white border border-cardBorder rounded-xl p-4 flex flex-col justify-between">
+<div>
+<!-- Header with xAI Violet accents -->
+<div class="flex items-center justify-between pb-3 border-b border-cardBorder">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-xaiViolet"></span>
+<h2 class="text-sm font-bold text-brandDark">Spatial Consensus Engine</h2>
+</div>
+<span class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold uppercase bg-xaiVioletLight text-xaiViolet">V2.4 ACTIVE</span>
+</div>
+<p class="text-xs text-inkMuted mt-2">Spatiotemporal transformer cross-validation against physical atmospheric priors</p>
+<!-- Metric Cards 2-Column Grid -->
+<div class="grid grid-cols-2 gap-3 mt-3">
+<div class="bg-panelBg border border-cardBorder p-3 rounded-lg flex flex-col justify-between">
+<span class="text-[11px] uppercase tracking-wider font-semibold text-inkMuted">NEIGHBORHOOD AGREEMENT</span>
+<div class="my-1 flex items-baseline gap-1.5">
+<span class="text-xl font-mono font-bold text-xaiViolet">98.4%</span>
+<span class="text-xs font-mono text-signalGreen font-medium">Δ ±0.3%</span>
+</div>
+<span class="text-[11px] text-inkMuted">K-nearest mesh correlation</span>
+</div>
+<div class="bg-panelBg border border-cardBorder p-3 rounded-lg flex flex-col justify-between">
+<span class="text-[11px] uppercase tracking-wider font-semibold text-inkMuted">Z-SCORE DIVERGENCE</span>
+<div class="my-1 flex items-baseline gap-1.5">
+<span class="text-xl font-mono font-bold text-brandDark">0.12 σ</span>
+<span class="text-xs font-mono text-inkMuted">/ 3.0σ max</span>
+</div>
+<span class="text-[11px] text-inkMuted">Global grid stability index</span>
+</div>
+</div>
+<!-- Flagged / Quarantined Sensors List -->
+<div class="mt-4">
+<div class="flex items-center justify-between mb-2">
+<span class="text-[11px] uppercase tracking-wider font-semibold text-inkMuted">FLAGGED / QUARANTINED SENSORS (3)</span>
+<span class="text-[11px] font-mono text-xaiViolet font-medium">Auto-Isolate Rule ON</span>
+</div>
+<div class="flex flex-col gap-2">
+<!-- Item 1 -->
+<div class="p-2.5 rounded-lg bg-panelBg border border-cardBorder flex items-center justify-between text-xs">
+<div class="min-w-0 pr-2">
+<div class="flex items-center gap-1.5">
+<span class="font-mono font-semibold text-brandDark">#US-NW-042</span>
+<span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase bg-signalRedLight text-signalRed">QUARANTINED</span>
+</div>
+<div class="text-inkMuted truncate text-[11px] mt-0.5">Barometric bias +4.2hPa • Div: High</div>
+</div>
+<button class="px-2.5 py-1 rounded bg-white border border-cardBorder text-brandDark hover:bg-panelBg text-xs font-medium whitespace-nowrap transition-colors">
+                  Audit Bias
+                </button>
+</div>
+<!-- Item 2 -->
+<div class="p-2.5 rounded-lg bg-panelBg border border-cardBorder flex items-center justify-between text-xs">
+<div class="min-w-0 pr-2">
+<div class="flex items-center gap-1.5">
+<span class="font-mono font-semibold text-brandDark">#EU-CE-118</span>
+<span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase bg-signalAmberLight text-signalAmber">FLAGGED</span>
+</div>
+<div class="text-inkMuted truncate text-[11px] mt-0.5">Anemometer stalling • Frozen output</div>
+</div>
+<button class="px-2.5 py-1 rounded bg-white border border-cardBorder text-brandDark hover:bg-panelBg text-xs font-medium whitespace-nowrap transition-colors">
+                  Inspect
+                </button>
+</div>
+<!-- Item 3 -->
+<div class="p-2.5 rounded-lg bg-panelBg border border-cardBorder flex items-center justify-between text-xs">
+<div class="min-w-0 pr-2">
+<div class="flex items-center gap-1.5">
+<span class="font-mono font-semibold text-brandDark">#AP-SE-094</span>
+<span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase bg-xaiVioletLight text-xaiViolet">INVESTIGATING</span>
+</div>
+<div class="text-inkMuted truncate text-[11px] mt-0.5">Relative Humidity jump +38% (Dewpoint dev)</div>
+</div>
+<button class="px-2.5 py-1 rounded bg-white border border-cardBorder text-brandDark hover:bg-panelBg text-xs font-medium whitespace-nowrap transition-colors">
+                  Telemetry
+                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Consensus Action Buttons -->
+<div class="flex items-center gap-2 pt-3 mt-3 border-t border-cardBorder">
+<button class="flex-1 py-2 px-3 rounded-lg bg-xaiViolet hover:opacity-95 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-opacity">
+<span class="material-symbols-outlined text-[16px]">psychology</span>
+<span>Run Re-Consensus</span>
+</button>
+<button class="flex-1 py-2 px-3 rounded-lg bg-white border border-cardBorder hover:bg-panelBg text-brandDark font-medium text-xs flex items-center justify-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]">query_stats</span>
+<span>Inspect Residuals</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 6. FULL-WIDTH LIVE ANOMALY & ACTIVE LEARNING TABLE -->
+<div class="w-full bg-white border border-cardBorder rounded-xl p-4 flex flex-col gap-3">
+<!-- Table Header & Controls -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+<div>
+<div class="flex items-center gap-2">
+<h2 class="text-sm font-bold text-brandDark">Live Anomaly &amp; Active Learning Stream</h2>
+<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-signalAmberLight text-signalAmber flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-signalAmber animate-pulse"></span>STREAMING
+            </span>
+</div>
+<p class="text-xs text-inkMuted mt-0.5">Real-time edge telemetry paired with spatial neural expectation vectors</p>
+</div>
+<!-- Search input & Export CSV -->
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-1.5 bg-panelBg border border-cardBorder px-2.5 py-1.5 rounded-lg text-xs">
+<span class="material-symbols-outlined text-[16px] text-inkMuted">search</span>
+<input class="bg-transparent text-brandDark focus:outline-none w-48 text-xs font-sans placeholder-inkMuted" placeholder="Filter station or parameter..." type="text"/>
+</div>
+<button class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-cardBorder hover:bg-panelBg text-xs font-medium text-brandDark transition-colors">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+<span>Export CSV</span>
+</button>
+</div>
+</div>
+<!-- High-density Data Table -->
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left text-xs border-collapse">
+<thead>
+<tr class="bg-panelBg border-y border-cardBorder text-[11px] font-semibold uppercase tracking-wider text-inkMuted">
+<th class="py-2.5 px-3">STATION ID</th>
+<th class="py-2.5 px-3">PARAMETER</th>
+<th class="py-2.5 px-3 text-right">LIVE TELEMETRY</th>
+<th class="py-2.5 px-3 text-right">EXPECTED MODEL</th>
+<th class="py-2.5 px-3">STATUS</th>
+<th class="py-2.5 px-3 text-right">ML CONFIDENCE</th>
+<th class="py-2.5 px-3 text-right">LAST PING</th>
+<th class="py-2.5 px-3 text-center">ACTIONS</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-cardBorder">
+<!-- Row 1 -->
+<tr class="hover:bg-panelBg/70 transition-colors">
+<td class="py-3 px-3 font-mono font-medium text-brandDark">STN-9021-OR</td>
+<td class="py-3 px-3 flex items-center gap-2 text-brandDark font-medium">
+<span class="material-symbols-outlined text-[17px] text-inkMuted">compress</span>
+<span>Barometric Pressure</span>
+</td>
+<td class="py-3 px-3 text-right font-mono font-semibold text-brandDark">1,014.24 hPa</td>
+<td class="py-3 px-3 text-right font-mono text-inkMuted">1,014.18 hPa</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono font-medium bg-signalGreenLight text-signalGreen">
+<span class="w-1.5 h-1.5 rounded-full bg-signalGreen"></span>Nominal
+                </span>
+</td>
+<td class="py-3 px-3 text-right font-mono font-semibold text-signalGreen">99.8%</td>
+<td class="py-3 px-3 text-right font-mono text-inkMuted">09:47:12.18</td>
+<td class="py-3 px-3 text-center">
+<div class="flex items-center justify-center gap-1 text-inkMuted">
+<button class="p-1 hover:text-brandDark" title="Inspect"><span class="material-symbols-outlined text-[17px]">visibility</span></button>
+<button class="p-1 hover:text-brandDark" title="Quarantine"><span class="material-symbols-outlined text-[17px]">shield</span></button>
+<button class="p-1 hover:text-brandDark" title="Flag"><span class="material-symbols-outlined text-[17px]">bookmark_add</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="bg-panelBg/30 hover:bg-panelBg/70 transition-colors">
+<td class="py-3 px-3 font-mono font-medium text-brandDark">STN-4412-TX</td>
+<td class="py-3 px-3 flex items-center gap-2 text-brandDark font-medium">
+<span class="material-symbols-outlined text-[17px] text-inkMuted">thermostat</span>
+<span>Ambient Air Temp</span>
+</td>
+<td class="py-3 px-3 text-right font-mono font-semibold text-signalAmber">38.4 °C</td>
+<td class="py-3 px-3 text-right font-mono text-inkMuted">36.1 °C</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono font-medium bg-signalAmberLight text-signalAmber">
+<span class="w-1.5 h-1.5 rounded-full bg-signalAmber"></span>Drift (+2.3°)
+                </span>
+</td>
+<td class="py-3 px-3 text-right font-mono font-semibold text-signalAmber">84.1%</td>
+<td class="py-3 px-3 text-right font-mono text-inkMuted">09:47:11.90</td>
+<td class="py-3 px-3 text-center">
+<div class="flex items-center justify-center gap-1 text-inkMuted">
+<button class="p-1 hover:text-brandDark" title="Inspect"><span class="material-symbols-outlined text-[17px]">visibility</span></button>
+<button class="p-1 hover:text-signalAmber" title="Quarantine"><span class="material-symbols-outlined text-[17px]">shield</span></button>
+<button class="p-1 hover:text-brandDark" title="Flag"><span class="material-symbols-outlined text-[17px]">bookmark_add</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-panelBg/70 transition-colors">
+<td class="py-3 px-3 font-mono font-medium text-brandDark">STN-8820-ME</td>
+<td class="py-3 px-3 flex items-center gap-2 text-brandDark font-medium">
+<span class="material-symbols-outlined text-[17px] text-inkMuted">air</span>
+<span>Wind Velocity (Gust)</span>
+</td>
+<td class="py-3 px-3 text-right font-mono font-semibold text-brandDark">22.4 kt / 290°</td>
+<td class="py-3 px-3 text-right font-mono text-inkMuted">21.8 kt / 285°</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono font-medium bg-signalGreenLight text-signalGreen">
+<span class="w-1.5 h-1.5 rounded-full bg-signalGreen"></span>Nominal
+                </span>
+</td>
+<td class="py-3 px-3 text-right font-mono font-semibold text-signalGreen">96.7%</td>
+<td class="py-3 px-3 text-right font-mono text-inkMuted">09:47:11.45</td>
+<td class="py-3 px-3 text-center">
+<div class="flex items-center justify-center gap-1 text-inkMuted">
+<button class="p-1 hover:text-brandDark" title="Inspect"><span class="material-symbols-outlined text-[17px]">visibility</span></button>
+<button class="p-1 hover:text-brandDark" title="Quarantine"><span class="material-symbols-outlined text-[17px]">shield</span></button>
+<button class="p-1 hover:text-brandDark" title="Flag"><span class="material-symbols-outlined text-[17px]">bookmark_add</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="bg-panelBg/30 hover:bg-panelBg/70 transition-colors">
+<td class="py-3 px-3 font-mono font-medium text-brandDark">STN-3109-FL</td>
+<td class="py-3 px-3 flex items-center gap-2 text-brandDark font-medium">
+<span class="material-symbols-outlined text-[17px] text-inkMuted">water_drop</span>
+<span>Relative Humidity</span>
+</td>
+<td class="py-3 px-3 text-right font-mono font-semibold text-signalAmber">94.8 %RH</td>
+<td class="py-3 px-3 text-right font-mono text-inkMuted">81.0 %RH</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono font-medium bg-signalAmberLight text-signalAmber">
+<span class="w-1.5 h-1.5 rounded-full bg-signalAmber"></span>Drift (+1.9σ)
+                </span>
+</td>
+<td class="py-3 px-3 text-right font-mono font-semibold text-signalAmber">78.2%</td>
+<td class="py-3 px-3 text-right font-mono text-inkMuted">09:47:10.82</td>
+<td class="py-3 px-3 text-center">
+<div class="flex items-center justify-center gap-1 text-inkMuted">
+<button class="p-1 hover:text-brandDark" title="Inspect"><span class="material-symbols-outlined text-[17px]">visibility</span></button>
+<button class="p-1 hover:text-signalAmber" title="Quarantine"><span class="material-symbols-outlined text-[17px]">shield</span></button>
+<button class="p-1 hover:text-brandDark" title="Flag"><span class="material-symbols-outlined text-[17px]">bookmark_add</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-panelBg/70 transition-colors">
+<td class="py-3 px-3 font-mono font-medium text-signalRed">STN-7731-CO</td>
+<td class="py-3 px-3 flex items-center gap-2 text-brandDark font-medium">
+<span class="material-symbols-outlined text-[17px] text-signalRed">solar_power</span>
+<span>Pyranometer Irradiance</span>
+</td>
+<td class="py-3 px-3 text-right font-mono font-semibold text-signalRed">0.00 W/m² (NULL)</td>
+<td class="py-3 px-3 text-right font-mono text-inkMuted">640.20 W/m²</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono font-medium bg-signalRedLight text-signalRed">
+<span class="w-1.5 h-1.5 rounded-full bg-signalRed"></span>Critical Fault
+                </span>
+</td>
+<td class="py-3 px-3 text-right font-mono font-semibold text-signalRed">12.0%</td>
+<td class="py-3 px-3 text-right font-mono text-inkMuted">09:44:02.10</td>
+<td class="py-3 px-3 text-center">
+<div class="flex items-center justify-center gap-1 text-inkMuted">
+<button class="p-1 hover:text-brandDark" title="Inspect"><span class="material-symbols-outlined text-[17px]">visibility</span></button>
+<button class="p-1 text-signalRed hover:opacity-80" title="Quarantine"><span class="material-symbols-outlined text-[17px]">lock</span></button>
+<button class="p-1 hover:text-brandDark" title="Service"><span class="material-symbols-outlined text-[17px]">build</span></button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination & Stream Info Footer -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-cardBorder text-xs text-inkMuted font-mono">
+<div class="flex items-center gap-2">
+<span>Showing 5 of 1,432 operational records</span>
+<span>•</span>
+<span class="text-signalGreen">Active WebSocket session: ws://telemetry.- AI.internal:8080/v4/stream</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="px-2.5 py-1 rounded bg-panelBg border border-cardBorder text-inkMuted opacity-50 cursor-not-allowed">Previous</button>
+<span class="px-2 py-1 text-brandDark font-semibold">Page 1 of 287</span>
+<button class="px-2.5 py-1 rounded bg-panelBg border border-cardBorder text-brandDark hover:bg-white transition-colors">Next</button>
+</div>
+</div>
+</div>
+</main>
+<!-- 7. FOOTER -->
+<footer class="w-full bg-white border-t border-cardBorder py-3.5 px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-inkMuted">
+<div class="font-mono text-[11px]">
+      - AI Operational Workspace v4.12.0-prod • Consensus Latency: 14ms
+    </div>
+<div>
+      © 2024 SkyGuard AI Inc. Authorized Grid &amp; Meteorological Personnel Only.
+    </div>
+</footer>
+</body></html>
