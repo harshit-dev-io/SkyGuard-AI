@@ -65,7 +65,7 @@ export const WalkthroughVideoModal: React.FC<WalkthroughVideoModalProps> = ({
               <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black border border-[#E9E5DF] dark:border-[#332C23] shadow-md">
                 <iframe
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/LXb3EKWsInQ?autoplay=1&mute=0&rel=0&modestbranding=1&controls=1"
+                  src="https://www.youtube.com/embed/gj0A0eZWh8c?autoplay=1&mute=0&rel=0&modestbranding=1&controls=1"
                   title="SkyGuard - AI System Operational Walkthrough"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
